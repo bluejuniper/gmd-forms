@@ -33,7 +33,7 @@ end
 
 # tau_oil = 71 mins
 function top_oil_rise(branch, result; tau_oil=4260, Delta_t=10)
-    delta_oil_ss = steady_state_top_oil_temperature(branch, result)
+    delta_oil_ss = ss_top_oil_rise(branch, result)
     delta_oil = delta_oil_ss # if we are at 1st iteration then assume starts from steady-state
 
     if ("delta_oil" in keys(branch) && "delta_oil_ss" in keys(branch))
@@ -141,11 +141,11 @@ for i in 1:n
   
         #to = ss_top_oil_rise(br, data["ac"]["result"])
         result = data["ac"]["result"]
-        top_oil_rise(br, result)
-        update_top_oil_rise(br, net)
+        PowerModelsGMD.top_oil_rise(br, result)
+        PowerModelsGMD.update_top_oil_rise(br, net)
 
-        hotspot_rise(br, result, Ie_prev[k])
-        update_hotspot_rise(br, net)
+        PowerModelsGMD.hotspot_rise(br, result, Ie_prev[k])
+        PowerModelsGMD.update_hotspot_rise(br, net)
         Ie_prev[k] = br["ieff"]
 
         to = br["delta_oil"]
