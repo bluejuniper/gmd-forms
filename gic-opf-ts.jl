@@ -15,7 +15,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PowerModels.variable_generation(pm, nw=n)
         PowerModels.variable_branch_flow(pm, nw=n)
         PowerModels.variable_dcline_flow(pm, nw=n)
-        PowerModelsGMD.variable_dc_line_flow(pm)
+        PowerModelsGMD.variable_dc_line_flow(pm, nw=n)
 
         PowerModels.constraint_voltage(pm, nw=n)
 
@@ -43,11 +43,11 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
         ### DC network constraints ###
         for i in ids(pm, :gmd_bus)
-            constraint_dc_kcl_shunt(pm, i, nw=n) # OK
+            PowerModelsGMD.constraint_dc_kcl_shunt(pm, i, nw=n) # OK
         end
 
         for i in ids(pm, :gmd_branch)
-            constraint_dc_ohms(pm, i, nw=n) # OK
+            PowerModelsGMD.constraint_dc_ohms(pm, i, nw=n) # OK
         end
 
         for i in ids(pm, :dcline, nw=n)
