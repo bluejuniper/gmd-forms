@@ -1,4 +1,7 @@
 using Ipopt, PowerModels, PowerModelsGMD
+#include("thermal-constraint.jl")
+include("thermal-constraint-template.jl")
+
 
 ""
 function run_gic_opf_ts(file, model_constructor, solver; kwargs...)
@@ -16,6 +19,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PowerModels.variable_branch_flow(pm, nw=n)
         PowerModels.variable_dcline_flow(pm, nw=n)
         PowerModelsGMD.variable_dc_line_flow(pm, nw=n)
+        variable_delta_oil(pm, nw=n)
 
         PowerModels.constraint_voltage(pm, nw=n)
 
