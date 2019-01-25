@@ -55,7 +55,7 @@ using PowerModelsGMD
 
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal
-function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int, rate_a, delta_oil_rated)
+function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)
     p_fr = var(pm, n, c, :p, fi) # real power
     q_fr = var(pm, n, c, :q, fi) # reactive power
     delta_oil_ss = var(pm, n, :ross, i) # top-oil temperature rise
@@ -66,13 +66,13 @@ end
 #
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal
-function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int, delta_oil_init, tau, time_elapsed)
-    delta_oil = var(pm, n, :ro, i) # top-oil temperature rise
-    #@constraint(pm.model, se - energy == time_elapsed*(charge_eff*sc - sd/discharge_eff))
-    # delta_oil = (delta_oil_ss + delta_oil_ss_prev)/(1 + tau) - delta_oil_prev*(1 - tau)/(1 + tau)
-    # assume that transformer starts at equilibrium 
-    @constraint(pm,model, delta_oil == (delta_oil_ss + delta_oil_init)/(1 + tau) - delta_oil_init*(1 - tau)/(1 + tau))
-end
+#function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int, delta_oil_init, tau, time_elapsed)
+#    delta_oil = var(pm, n, :ro, i) # top-oil temperature rise
+#    #@constraint(pm.model, se - energy == time_elapsed*(charge_eff*sc - sd/discharge_eff))
+#    # delta_oil = (delta_oil_ss + delta_oil_ss_prev)/(1 + tau) - delta_oil_prev*(1 - tau)/(1 + tau)
+#    # assume that transformer starts at equilibrium 
+#    @constraint(pm,model, delta_oil == (delta_oil_ss + delta_oil_init)/(1 + tau) - delta_oil_init*(1 - tau)/(1 + tau))
+#end
 
 #function constraint_temperature_state(pm::genericpowermodel, n_1::int, n_2::int, i::int, charge_eff, discharge_eff, time_elapsed)
 #    sc_2 = var(pm, n_2, :sc, i)

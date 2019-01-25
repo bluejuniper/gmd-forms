@@ -1,5 +1,6 @@
 ### Thermal Constraints ###
-using PowerModels
+using JuMP, PowerModels
+include("thermal-constraint.jl")
 
 #""
 #function constraint_temperature_exchange(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, cnd::Int=pm.ccnd)
@@ -9,21 +10,20 @@ using PowerModels
 #    constraint_temperature_loss(pm, nw, i, temperature["storage_bus"], temperature["r"][cnd], temperature["x"][cnd], temperature["standby_loss"])
 #end
 
-# add in realistic bounds for top-oil temperature rise
-function variable_delta_oil(pm::GenericPowerModel; nw::Int=pm.cnw, cnd::Int=pm.ccnd, bounded = true)
-    if bounded
-        var(pm, nw, cnd)[:ro] = @variable(pm.model, 
-            [i in ids(pm, nw, :branch)], basename="$(nw)_$(cnd)_delta_oil",
-            lowerbound = 0,
-            upperbound = 200,
-            start = PowerModels.getval(ref(pm, nw, :branch, i), "delta_oil_start", cnd)
-        )
-    else
-        var(pm, nw, cnd)[:ro] = @variable(pm.model, 
-            [i in ids(pm, nw, :branch)], basename="$(nw)_$(cnd)_delta_oil",
-            start = PowerModels.getval(ref(pm, nw, :delta_oil, i), "delta_oil_start", cnd)
-        )
-    end
+# really should move these parameters into the model, this is rather clunky
+""
+function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, delta_oil_rated=150)
+    #temperature = ref(pm, nw, :storage, i)
+
+    branch = ref(pm, nw, :branch, i)
+    rate_a = branch["rate_a"]
+
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    cnd = 1 # only support positive sequence for now
+
+    constraint_temperature_steady_state(pm, nw, i, f_idx, cnd, rate_a, delta_oil_rated)
 end
 
 

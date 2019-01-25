@@ -1,4 +1,5 @@
 using Ipopt, PowerModels, PowerModelsGMD
+include("thermal-variable.jl")
 #include("thermal-constraint.jl")
 include("thermal-constraint-template.jl")
 
@@ -19,7 +20,8 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PowerModels.variable_branch_flow(pm, nw=n)
         PowerModels.variable_dcline_flow(pm, nw=n)
         PowerModelsGMD.variable_dc_line_flow(pm, nw=n)
-        variable_delta_oil(pm, nw=n)
+        variable_delta_oil_ss(pm, nw=n)
+        #variable_delta_oil(pm, nw=n)
 
         PowerModels.constraint_voltage(pm, nw=n)
 
@@ -43,6 +45,8 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
             PowerModels.constraint_thermal_limit_from(pm, i, nw=n)
             PowerModels.constraint_thermal_limit_to(pm, i, nw=n)
+
+            constraint_temperature_state_ss(pm, i, nw=n)
         end
 
         ### DC network constraints ###
