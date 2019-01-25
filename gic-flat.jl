@@ -25,8 +25,13 @@ end
 
 path = "data/tx2000.json"
 path = "data/b4gic.m"
+
 path = "data/eastern-fixed.json"
 opath ="data/eastern-fixed-results.json"
+
+#path = "data/northeast-fixed.json"
+#opath ="data/northeast-fixed-results.json"
+
 #path = "data/northeast.json"
 #path = "data/isone.json"
 
@@ -45,6 +50,6 @@ println("Done solving $path")
 
 println("Start writing $opath")
 h = open(opath, "w")
-JSON.print(h)
+JSON.print(h, result)
 close(h)
 println("Done writing $opath")
