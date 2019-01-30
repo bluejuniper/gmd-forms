@@ -1,83 +1,99 @@
-function [branchMap,busMap,gic,vdc] = LPMethod(branchListStruct,busListStruct)
-%LPMETHOD Summary of this function goes here
-%   Detailed explanation goes here
+using JSON, PowerModelsGMD
 
-%I assume the branchListStruct and busListStruct are snatched directly from
-%jsondecode.  First I need to make these maps for somewhat easier access.
-branchMap=GICCalc.JSONStructToMap(branchListStruct);
-busMap=GICCalc.JSONStructToMap(busListStruct);
+function run_gic_matrix(net)
+    # We will be solving for bus to ground currents.  We have two matrices to 
+    # worry about, Y and Z.  Both are nxn where n is the number of busses.  Y
+    # is symettric and, for now, Z is diagonal.
 
-%We will be solving for bus to ground currents.  We have two matrices to 
-%worry about, Y and Z.  Both are nxn where n is the number of busses.  Y
-%is symettric and, for now, Z is diagonal.
+    num_branches = length(net["gmd_branch"])
+    num_buses = length(net["gmd_bus"])
+    bus_ids = Dict([(b["index"], i) for (i, b) in enumerate(values(net["gmd_bus"]))])
 
-numBranch=length(branchMap);
-numBus=length(busMap);
+    # First we need JJ, which is the perfect earth grounding current at each
+    # bus location.  It is the sum of the emf on each line going into a
+    # substation time the y for that line
 
+    J = zeros(num_buses)
 
-branchList=values(branchMap)';
-busList=values(busMap)';
-busIdx=cell2mat(keys(busMap))';
+    iy = Array(1:num_buses) #  diag rows
+    jy = Array(1:num_buses) #  diag cols
+    vy = zeros(num_buses) #  diagonal values
 
-%First we need JJ, which is the perfect earth grounding current at each
-%bus location.  It is the sum of the emf on each line going into a
-%substation time the y for that line
+    # create the on-diagonal values of Y
+    for (k, branch) in net["gmd_branch"]
+        m = bus_ids[branch["f_bus"]]
+        n = bus_ids[branch["t_bus"]]
 
-J=zeros(numBus,1);
+        if m == n || branch["br_status"] != 1
+            continue
+        end
 
-mm=zeros(2*numBranch,1); % off diag rows
-nn=zeros(2*numBranch,1); %off diag cols
-matVals=zeros(2*numBranch,1); % off-diagonal values
-z=-1;
-
-mmm=(1:numBus)'; % diag rows
-nnn=(1:numBus)'; % diag cols
-YY=zeros(numBus,1); % diagonal values
-
-for i=1:numBranch
-    branch=branchList{i};
-    m=find(busIdx==branch.f_bus,1);
-    n=find(busIdx==branch.t_bus,1);
-    if((m~=n) && (branch.br_status==1))
-        J(m) = J(m) - (1.00/branch.br_r)*branch.br_v;
-        J(n) = J(n) + (1.00/branch.br_r)*branch.br_v;
+        J[m] -= branch["br_v"]/branch["br_r"]
+        J[n] += branch["br_v"]/branch["br_r"]
         
-        z=z+2;
-        mm(z)=m;
-        nn(z)=n;
-        matVals(z)=-(1.00/branch.br_r);
-        
-        mm(z+1)=n;
-        nn(z+1)=m;
-        matVals(z+1)=matVals(z);
-        
-        YY(m) = YY(m) + (1.00/branch.br_r);
-        YY(n) = YY(n) + (1.00/branch.br_r);
+        vy[m] += 1/branch["br_r"]
+        vy[n] += 1/branch["br_r"]
     end
-    
+
+    # create the off-diagonal values of Y
+    for (k, branch) in net["gmd_branch"]
+        m = bus_ids[branch["f_bus"]]
+        n = bus_ids[branch["t_bus"]]
+
+        if m == n || branch["br_status"] != 1
+            continue
+        end
+
+        push!(iy, m)
+        push!(jy, n)
+        push!(vy, -1/branch["br_r"])
+
+        push!(iy, n)
+        push!(jy, m)
+        push!(vy, 1/branch["br_r"])
+    end
+
+
+    Y = sparse(iy, jy, vy)
+
+    zmm = zeros(num_buses)
+    znn = zeros(num_buses)
+    zmatVals = zeros(num_buses)
+
+    iz = Array(1:num_buses)
+    jz = Array(1:num_buses)
+    vz = [1/b["g_gnd"] for (k,b) in net["gmd_bus"]]
+
+    Z = sparse(iz, jz, vz)
+    I = speye(num_buses, num_buses)
+    MM = Y*Z
+    M = I + MM
+
+    return M\J # GIC flowing into each bus grounding resistance
 end
 
-Y=sparse([mmm;mm],[nnn;nn],[YY;matVals]);
+path = "data/tx2000.json"
+path = "data/b4gic.m"
 
-zmm=zeros(numBus,1);
-znn=zeros(numBus,1);
-zmatVals=zeros(numBus,1);
-for i=1:numBus
-    bus=busList{i};
-    zmm(i)=i;
-    znn(i)=i;
-    zmatVals(i)=(1.00/bus.g_gnd);
-end
-Z=sparse(zmm,znn,zmatVals);
+#path = "data/eastern-fixed.json"
+#path = "data/northeast-fixed.json"
+#path = "data/northeast.json"
+#path = "data/isone.json"
 
-I=speye(numBus,numBus);
+println("Start loading $path")
+net = PowerModels.parse_file(path)
+#h = open(path)
+#net = JSON.parse(h)
+#close(h)
+println("Done loading $path")
 
-MM=Y*Z;
+println("Start solving $path")
+result = run_gic_matrix(net)
+println("Done solving $path")
 
-M=(I+MM);
-
-gic=M\J;
-vdc=Z*gic;
-
-end
-
+opath = replace(path, ".json", "_results.json")
+println("Start writing $opath")
+h = open(opath, "w")
+JSON.print(h, result)
+close(h)
+println("Done writing $opath")
