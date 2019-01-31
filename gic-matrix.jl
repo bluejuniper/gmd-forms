@@ -22,71 +22,88 @@ println("Start solving $path")
 # worry about, Y and Z.  Both are nxn where n is the number of busses.  Y
 # is symetric and, for now, Z is diagonal.
 
-nbus = length(net["gmd_bus"])
-busids = Dict([(b["index"], i) for (i, b) in enumerate(values(net["gmd_bus"]))])
-buskeys = collect(keys(net["gmd_bus"]))
+######
+%I assume the branchListStruct and busListStruct are snatched directly from
+%jsondecode.  First I need to make these maps for somewhat easier access.
+branchMap=GICCalc.JSONStructToMap(branchListStruct);
+busMap=GICCalc.JSONStructToMap(busListStruct);
 
-# First we need JJ, which is the perfect earth grounding current at each
-# bus location.  It is the sum of the emf on each line going into a
-# substation time the y for that line
+%We will be solving for bus to ground currents.  We have two matrices to 
+%worry about, Y and Z.  Both are nxn where n is the number of busses.  Y
+%is symettric and, for now, Z is diagonal.
 
-J = zeros(nbus)
+numBranch=length(branchMap);
+numBus=length(busMap);
 
-iy = Array(1:nbus) #  diag rows
-jy = Array(1:nbus) #  diag cols
-vy = zeros(nbus) #  diagonal values
 
-# create the on-diagonal values of Y
-for (k, branch) in net["gmd_branch"]
-    m = busids[branch["f_bus"]]
-    n = busids[branch["t_bus"]]
+branchList=values(branchMap)';
+busList=values(busMap)';
+busIdx=cell2mat(keys(busMap))';
 
-    if m == n || branch["br_status"] != 1
-        continue
+%First we need JJ, which is the perfect earth grounding current at each
+%bus location.  It is the sum of the emf on each line going into a
+%substation time the y for that line
+
+J=zeros(numBus,1);
+
+mm=zeros(2*numBranch,1); % off diag rows
+nn=zeros(2*numBranch,1); %off diag cols
+matVals=zeros(2*numBranch,1); % off-diagonal values
+z=-1;
+
+mmm=(1:numBus)'; % diag rows
+nnn=(1:numBus)'; % diag cols
+YY=zeros(numBus,1); % diagonal values
+
+for i=1:numBranch
+    branch=branchList{i};
+    m=find(busIdx==branch.f_bus,1);
+    n=find(busIdx==branch.t_bus,1);
+    if((m~=n) && (branch.br_status==1))
+        J(m) = J(m) - (1.00/branch.br_r)*branch.br_v;
+        J(n) = J(n) + (1.00/branch.br_r)*branch.br_v;
+        
+        z=z+2;
+        mm(z)=m;
+        nn(z)=n;
+        matVals(z)=-(1.00/branch.br_r);
+        
+        mm(z+1)=n;
+        nn(z+1)=m;
+        matVals(z+1)=matVals(z);
+        
+        YY(m) = YY(m) + (1.00/branch.br_r);
+        YY(n) = YY(n) + (1.00/branch.br_r);
     end
-
-    J[m] -= branch["br_v"]/branch["br_r"]
-    J[n] += branch["br_v"]/branch["br_r"]
     
-    # YY
-    vy[m] += 1/branch["br_r"]
-    vy[n] += 1/branch["br_r"]
 end
 
-# create the off-diagonal values of Y
-for (k, branch) in net["gmd_branch"]
-    m = busids[branch["f_bus"]]
-    n = busids[branch["t_bus"]]
+Y=sparse([mmm;mm],[nnn;nn],[YY;matVals]);
 
-    if m == n || branch["br_status"] != 1
-        continue
-    end
+zmm=zeros(numBus,1);
+znn=zeros(numBus,1);
+zmatVals=zeros(numBus,1);
+for i=1:numBus
+    bus=busList{i};
+    zmm(i)=i;
+    znn(i)=i;
+    zmatVals(i)=(1.00/bus.g_gnd);
+end
+Z=sparse(zmm,znn,zmatVals);
 
-    # matVals
-    push!(iy, m)
-    push!(jy, n)
-    push!(vy, -1/branch["br_r"])
+I=speye(numBus,numBus);
 
-    push!(iy, n)
-    push!(jy, m)
-    push!(vy, 1/branch["br_r"])
+MM=Y*Z;
+
+M=(I+MM);
+
+gic=M\J;
+vdc=Z*gic;
+
 end
 
-Y = sparse(iy, jy, vy)
 
-iz = Array(1:nbus)
-jz = Array(1:nbus)
-vz = [1/max(b["g_gnd"], 1e-6) for (k,b) in net["gmd_bus"]]
-Z = sparse(iz, jz, vz)
-
-I = speye(nbus)
-MM = Y*Z
-M = I + MM
-
-#return M\J # GIC flowing into each bus grounding resistance
-gic = M\J # GIC flowing into each bus grounding resistance
-vdc = Z*gic
-result = Dict()
+######
 result["gic"] = Dict()
 result["vdc"] = Dict()
 ##end
