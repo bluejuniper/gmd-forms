@@ -57,13 +57,13 @@ YY=zeros(numBus) # diagonal values
 
 for i in 1:numBranch
     branch=branchList[i]
-    m=find(busIdx==branch["f_bus"])
-    n=find(busIdx==branch["t_bus"])
+    m=busIdx[branch["f_bus"]]
+    n=busIdx[branch["t_bus"]]
     if((m!=n) && (branch["br_status"]==1))
-        J[m] = J[m] - (1.00/branch["br_r"])*branch["br_v"]
-        J[n] = J[n] + (1.00/branch["br_r"])*branch["br_v"]
+        J[m] -= (1.00/branch["br_r"])*branch["br_v"]
+        J[n] += (1.00/branch["br_r"])*branch["br_v"]
         
-        z=z+2
+        z+=2
         mm[z]=m
         nn[z]=n
         matVals[z]=-(1.00/branch["br_r"])
@@ -72,8 +72,8 @@ for i in 1:numBranch
         nn[z+1]=m
         matVals[z+1]=matVals[z]
         
-        YY[m] = YY[m] + (1.00/branch["br_r"])
-        YY[n] = YY[n] + (1.00/branch["br_r"])
+        YY[m] += (1.00/branch["br_r"])
+        YY[n] += (1.00/branch["br_r"])
     end
     
 end
@@ -87,7 +87,7 @@ for i in 1:numBus
     bus=busList[i]
     zmm[i]=i
     znn[i]=i
-    zmatVals[i]=(1.00/bus["g_gnd"])
+    zmatVals[i]=(1.00/max(bus["g_gnd"],1e-6))
 end
 Z=sparse(zmm,znn,zmatVals)
 
