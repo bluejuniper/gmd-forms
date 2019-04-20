@@ -1,0 +1,107 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+# %autosave 0
+import json, gzip, os
+from glob import glob
+import numpy as np
+```
+
+```{python}
+os.getcwd()
+```
+
+```{python}
+# %%capture
+# read in the gic version
+with gzip.open("data/rts-gmlc-geo.json.gz") as h:
+    jnet = json.load(h); 
+```
+
+```{python}
+# %%capture
+# read in the matpower version
+with open("data/RTS_GMLC_Geo.json") as h:
+    mnet = json.load(h); 
+```
+
+```{python}
+# %%capture
+def compdiff(x, y):
+    for k,v in x.items():
+        if k not in y:
+            #print('{} not found'.format(k))
+            continue
+            
+        if k in set(('index','rate_b','rate_c')):
+            continue
+        
+        d = v - y[k]
+        
+        if np.abs(d) < 1e-6:
+            continue
+            
+        print('{:>10}: {:8.2f} = {:8.2f} - {:8.2f}'.format(k, d, v, y[k]))
+        
+def tablediff(x, y):
+    for k,v in x.items():
+        if k not in y:
+            #print('{} not found'.format(k))
+            continue
+
+        print('Component {}\n---------------------------'.format(k))
+        compdiff(v, y[k])
+        print()
+        
+```
+
+```{python}
+list(mnet['bus'].values())[0]
+```
+
+```{python}
+tablediff(mnet['bus'], jnet['bus'])
+```
+
+```{python}
+# create dict of branches
+jbranches = {}
+
+for b in jnet['branch'].values():
+    k = b['f_bus'], b['t_bus']
+    jbranches[k] = b
+```
+
+```{python}
+0.02*180/np.pi
+```
+
+```{python}
+for i,mbr in mnet['branch'].items():
+    k = mbr['f_bus'], mbr['t_bus']
+    jbr = jbranches[k]              
+
+    print('Component {}\n---------------------------'.format(i))
+    compdiff(mbr, jbr)
+    print()
+    
+# Differences observed
+# rate_b, rate_c are zero for jnet, but these are not used
+# angmin & angmax are much larger for jnet, for mnet it's just +/- 1 degree
+```
+
+```{python}
+0.02*
+```

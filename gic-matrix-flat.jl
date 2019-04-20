@@ -38,6 +38,7 @@ numBus=length(busMap)
 
 branchList=collect(values(branchMap))
 busList=collect(values(busMap))
+busKeys=collect(keys(busMap))
 busIdx=Dict([(b["index"],i) for (i,b) in enumerate(busList)])
 
 # First we need JJ, which is the perfect earth grounding current at each
@@ -104,12 +105,13 @@ vdc=Z*gic
 
 ######
 
+result = Dict()
 result["gic"] = Dict()
 result["vdc"] = Dict()
 ##end
 
 for (i,v) in enumerate(vdc)
-    k = buskeys[i]
+    k = busKeys[i]
     result["vdc"]["$k"] = v
     result["gic"]["$k"] = gic[i]
 end
