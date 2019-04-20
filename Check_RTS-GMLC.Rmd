@@ -40,20 +40,33 @@ with open("data/RTS_GMLC_Geo.json") as h:
 ```{python}
 # %%capture
 def compdiff(x, y):
-    for k,v in x.items():
+    for k,vx in x.items():
         if k not in y:
             #print('{} not found'.format(k))
             continue
             
-        if k in set(('index','rate_b','rate_c')):
+        if k in set(('index','rate_b','rate_c','vm','va')):
             continue
         
-        d = v - y[k]
+        vy = y[k]
+        numeric = True
         
-        if np.abs(d) < 1e-6:
+        if isinstance(vx, list):
+            vx = np.array(vx)
+            vy = np.array(vy)
+            numeric = False
+        
+        d = vx - y[k]
+        dmax = np.max(np.abs(d))
+        
+        if dmax < 1e-6:
             continue
             
-        print('{:>10}: {:8.2f} = {:8.2f} - {:8.2f}'.format(k, d, v, y[k]))
+        if numeric:
+            print('{:>10}: {:8.2f} = {:8.2f} - {:8.2f}'.format(k, d, vx, vy))
+        else:
+            print('{:>10}: {} = {} - {}'.format(k, dmax, vx, vy))
+
         
 def tablediff(x, y):
     for k,v in x.items():
@@ -72,20 +85,68 @@ list(mnet['bus'].values())[0]
 ```
 
 ```{python}
-tablediff(mnet['bus'], jnet['bus'])
-```
-
-```{python}
 # create dict of branches
 jbranches = {}
 
 for b in jnet['branch'].values():
     k = b['f_bus'], b['t_bus']
     jbranches[k] = b
+    
+# create dict of buses
+jbuses = {}
+
+for b in jnet['bus'].values():
+    k = b['bus_i']
+    jbranches[k] = b
+    
+jgens = {}
+for g in jnet['gen'].values():
+    k = g['gen_bus']
+    jgens[k] = g
+    
+jloads = {}
+for d in jnet['load'].values():
+    k = d['load_bus']
+    jloads[k] = d
 ```
 
 ```{python}
 0.02*180/np.pi
+```
+
+```{python}
+list(mnet['gen'].values())[0]
+```
+
+```{python}
+for i,mg in mnet['gen'].items():
+    k = mg['gen_bus']
+    jg = jgens[k]              
+
+    print('Component {}\n---------------------------'.format(i))
+    compdiff(mg, jg)
+    print()
+    
+# some generators have 0 pmax for feasible case
+# infeasible case (2) has
+# zero apf for some generators
+# zero qmin/qmax for some generators
+# high qmin for some generators
+# fixed term for generator cost doesn't matter
+# vg is 1.1 instead of 1.05
+# powers for case 2 are in MW instead of pu (100 MW base)
+
+```
+
+```{python}
+for i,mb in mnet['bus'].items():
+    k = mb['bus_i']
+    jb = jbranches[k]              
+
+    print('Component {}\n---------------------------'.format(i))
+    compdiff(mb, jb)
+    print()
+    
 ```
 
 ```{python}
