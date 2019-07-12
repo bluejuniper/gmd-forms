@@ -1,0 +1,163 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.1
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import json, gzip, os
+from glob import glob
+import numpy as np
+```
+
+```{python}
+os.getcwd()
+```
+
+```{python}
+# read in the gic version
+with open("data/epri21-0.json") as h:
+    mnet = json.load(h); 
+```
+
+```{python}
+# read in the matpower version
+with open("data/epri21.json") as h:
+    jnet = json.load(h); 
+```
+
+```{python}
+def compdiff(x, y):
+    for k,vx in x.items():          
+        if k in set(('index','rate_b','rate_c','vm','va','source_id','status')):
+            continue
+        if k not in y:
+            print('{} not found'.format(k))
+            continue
+            
+        vy = y[k]
+        numeric = True
+        
+        if isinstance(vx, list):
+            vx = np.array(vx)
+            vy = np.array(vy)
+            numeric = False
+        
+        if isinstance(vx, float) or isinstance(vx, int):
+            d = vx - y[k]
+            dmax = np.max(np.abs(d))        
+        else:
+            d = 0.0
+            dmax = 0.0
+
+
+        if dmax < 1e-6:
+            continue
+            
+        if numeric:
+            print('{:>10}: {:8.2f} = {:8.2f} - {:8.2f}'.format(k, d, vx, vy))
+        else:
+            print('{:>10}: {} = {} - {}'.format(k, dmax, vx, vy))
+
+        
+def tablediff(x, y):
+    for k,v in x.items():
+        if k not in y:
+            #print('{} not found'.format(k))
+            continue
+
+        print('Component {}\n---------------------------'.format(k))
+        compdiff(v, y[k])
+        print()
+        
+```
+
+```{python}
+# create dict of branches
+jbranches = {}
+
+for b in jnet['gmd_branch'].values():
+    k = b['f_bus'], b['t_bus']
+    jbranches[k] = b
+    
+# create dict of buses
+jbuses = {}
+for b in jnet['gmd_bus'].values():
+    k = b['parent_index']
+    jbuses[k] = b
+    
+jgens = {}
+for g in jnet['gen'].values():
+    k = g['gen_bus']
+    jgens[k] = g
+    
+jloads = {}
+for d in jnet['load'].values():
+    k = d['load_bus']
+    jloads[k] = d
+```
+
+```{python}
+mnet['gmd_bus']['1']
+```
+
+```{python}
+for i,mx in mnet['gmd_bus'].items():
+    k = mx['parent_index']
+    jx = jbuses[k]              
+
+    print('Component {}\n---------------------------'.format(i))
+    compdiff(mx, jx)
+    print()
+    
+# some generators have 0 pmax for feasible case
+# infeasible case (2) has
+# zero apf for some generators
+# zero qmin/qmax for some generators
+# high qmin for some generators
+# fixed term for generator cost doesn't matter
+# vg is 1.1 instead of 1.05
+# powers for case 2 are in MW instead of pu (100 MW base)
+
+```
+
+```{python}
+jbuses
+```
+
+```{python}
+for i,mb in mnet['bus'].items():
+    k = mb['bus_i']
+    jb = jbuses[k]              
+
+    print('Component {}\n---------------------------'.format(i))
+    compdiff(mb, jb)
+    print()
+    
+```
+
+```{python}
+for i,mbr in mnet['branch'].items():
+    k = mbr['f_bus'], mbr['t_bus']
+    jbr = jbranches[k]              
+
+    print('Component {}\n---------------------------'.format(i))
+    compdiff(mbr, jbr)
+    print()
+    
+# Differences observed
+# rate_b, rate_c are zero for jnet, but these are not used
+# angmin & angmax are much larger for jnet, for mnet it's just +/- 1 degree
+```
+
+```{python}
+0.02*
+```

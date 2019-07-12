@@ -2,3 +2,8 @@
 *.ipynb
 
 data/
+
+*.swo
+*.csv
+.ipynb_checkpoints/
+export-results/
