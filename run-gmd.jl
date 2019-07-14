@@ -3,9 +3,24 @@ include("powermodelsio.jl")
 
 println("Start loading json")
 path = "data/rts-gmlc-gic.json"
+# path = "data/rts-gmlc-gic.raw"
 opath = "data/rts-gmlc-gic-results.json"
 
+#path = "data/b4gic.json"
+#opath = "data/b4gic-results.json"
+#
+#path = "data/epri21.json"
+#opath = "data/epri21-results.json"
+#
+#path = "/home/abarnes/.julia/environments/v1.1/dev/PowerModelsGMD/test/data/b4gic.m"
+#opath = "data/b4gic-results.json"
+#
+#path = "/home/abarnes/.julia/environments/v1.1/dev/PowerModelsGMD/test/data/b6gic_nerc.m"
+#opath = "data/b6gic-nerc-results.json"
 
+if length(ARGS) >= 1
+    path = ARGS[1]
+end
 
 println("Start loading $path")
 if endswith(path, ".m") || endswith(path, ".raw")
