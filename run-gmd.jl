@@ -3,20 +3,7 @@ include("powermodelsio.jl")
 
 println("Start loading json")
 path = "data/rts-gmlc-gic.json"
-# path = "data/rts-gmlc-gic.raw"
 opath = "data/rts-gmlc-gic-results.json"
-
-#path = "data/b4gic.json"
-#opath = "data/b4gic-results.json"
-#
-#path = "data/epri21.json"
-#opath = "data/epri21-results.json"
-#
-#path = "/home/abarnes/.julia/environments/v1.1/dev/PowerModelsGMD/test/data/b4gic.m"
-#opath = "data/b4gic-results.json"
-#
-#path = "/home/abarnes/.julia/environments/v1.1/dev/PowerModelsGMD/test/data/b6gic_nerc.m"
-#opath = "data/b6gic-nerc-results.json"
 
 if length(ARGS) >= 1
     path = ARGS[1]
@@ -39,13 +26,7 @@ println("Done loading $path")
 
 net["storage"] = Dict()
 
-# net["per_unit"] = false
 PowerModels.make_per_unit!(net)
-#for (k,x) = net["gmd_bus"]
-#    x["status"] = 1
-#end
-
-# pm = PowerModels.build_model(net, PowerModelsGMD.ACPPowerModel, PowerModelsGMD.post_gmd)
 
 ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
 println("Start solving")
