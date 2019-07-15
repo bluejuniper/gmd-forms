@@ -1,5 +1,5 @@
 %% MATPOWER Case Format : Version 2
-function mpc = rts_gmlc_gic_matpower
+function mpc = rts_gmlc_gic
 mpc.version = '2';
 
 %%-----  Power Flow Data  -----%%
