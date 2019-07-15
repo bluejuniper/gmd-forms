@@ -1,4 +1,4 @@
-using GZip, JSON, Ipopt, PowerModels, PowerModelsGMD, PowerModelsLANL
+using GZip, JSON, Ipopt, PowerModels, PowerModelsGMD
 
 println("Start loading json")
 path = "../gmd-tools/data/epri21.json"
@@ -16,6 +16,7 @@ path = "data/rts-gmlc-gic.json.gz"
 #path = "data/rts-gmlc.json"
 #path = "../gmd-tools/data/tx2000.json.gz"
 #path = "../gmd-tools/data/uiuc150.json.gz"
+path = "data/rts_gmlc_gic.m"
 
 if length(ARGS) >= 1
     path = ARGS[1]
@@ -35,65 +36,12 @@ elseif endswith(path, ".json")
 end
 println("Done loading $path")
 
-path2 = "data/rts-gmlc-geo.json.gz"
-h = GZip.open(path2)
-net2 = JSON.parse(h)
-close(h)
 
-gen2 = Dict()
-
-for (k,g) in net2["gen"]
-    gen2[g["gen_bus"]] = g
-end
-
-net["storage"] = Dict()
-
-for (k,b) in net["branch"]
-    b["g_fr"] = 0
-    b["g_to"] = 0
-    #b["b_fr"] = 0.0*b["br_b"]/2
-    #b["b_to"] = 0.0*b["br_b"]/2
-    b["b_fr"] = 0.0
-    b["b_to"] = 0.0
-    b["angmin"] *= pi/180
-    b["angmax"] *= pi/180 
-
-    b["rate_a"] *= 10
-
-    if b["type"] == "xf"
-        b["rate_a"] *= 10
-    else
-        b["rate_a"] *= 1.1
-    end
-end
-
-for (k,g) in net["gen"]
-    b = g["gen_bus"]
-    g["pmax"] *= 2/100
-    g["qmax"] *= 2/100
-    g["pmin"] = 0.0
-    g["qmin"] = -g["qmax"]
-end
-
-for (k,b) in net["bus"]
-    b["vmax"] = 1.5
-    b["vmin"] = 0.5
-end
-
-for (k,b) in net["load"]
-    b["pd"] /= 100
-    b["qd"] /= 100
-end
-
-PowerModels.propagate_topology_status(net)
-PowerModels.select_largest_component(net)
-
-
-ipopt_solver = IpoptSolver()
-setting = Dict{AbstractString,Any}("output" => Dict{AbstractString,Any}("line_flows" => true))
+solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+s = Dict{AbstractString,Any}("output" => Dict{AbstractString,Any}("line_flows" => true))
 println("Start solving")
 #result = run_gic(net, ipopt_solver; setting=setting)
-result = run_ac_gic_opf_decoupled(net, ipopt_solver; setting=setting)
+result = run_ac_gmd_opf_decoupled(net, solver; setting=s)
 #result = run_ac_opf(net, ipopt_solver; setting=setting)
 #result = PowerModelsLANL.run_ml(net, SOCWRPowerModel, ipopt_solver)
 println("Done solving")

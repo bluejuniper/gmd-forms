@@ -2,8 +2,8 @@ using GZip, JSON, Ipopt, PowerModelsGMD, PowerModels, JuMP, DelimitedFiles
 include("powermodelsio.jl")
 
 println("Start loading json")
-path = "data/rts-gmlc-gic.json"
-opath = "data/rts-gmlc-gic-results.json"
+path = "data/rts_gmlc_gic.m"
+opath = "data/rts-gmlc-gic-matpower-results.json"
 
 
 
@@ -28,8 +28,10 @@ PowerModels.make_per_unit!(net)
 ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
 println("Start solving")
 setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
-result = run_gmd(net, ipopt_solver; setting=setting)
+# result = run_gmd(net, ipopt_solver; setting=setting)
+result = run_ac_gmd_opf_decoupled(net, ipopt_solver; setting=setting)
 
-io = open("data/rts_gmlc_gic.m", "w")
-PowerModels.export_matpower(io, net)
-close(io)
+
+# io = open("data/rts_gmlc_gic.m", "w")
+# PowerModels.export_matpower(io, net)
+# close(io)
