@@ -1,7 +1,10 @@
 *.swp
 *.ipynb
 
-data/
+*.json
+*.gz
+*.xlsx
+*.tgz
 
 *.swo
 *.csv
