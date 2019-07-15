@@ -29,3 +29,7 @@ ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
 println("Start solving")
 setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
 result = run_gmd(net, ipopt_solver; setting=setting)
+
+io = open("data/rts_gmlc_gic.m", "w")
+PowerModels.export_matpower(io, net)
+close(io)

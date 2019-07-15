@@ -12,7 +12,7 @@ function print_dict(x; drop=["index","bus_i"])
     end
 end
 
-function to_df(case, table_name; solution=nothing)
+function todf(case, table_name; solution=nothing)
     df = DataFrame()
     table = case[table_name]
 
