@@ -3,11 +3,12 @@ include("powermodelsio.jl")
 
 println("Start loading json")
 path = "data/rts_gmlc_gic.m"
-path = "data/rts_gmlc_gic_new.m"
 
-if length(ARGS) >= 1
-    path = ARGS[1]
-end
+# if length(ARGS) >= 1
+#     path = ARGS[1]
+# end
+
+net = nothing
 
 println("Start loading $path")
 if endswith(path, ".m") || endswith(path, ".raw")
