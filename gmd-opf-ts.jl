@@ -1,5 +1,6 @@
 using PowerModels, PowerModelsGMD, Ipopt, JuMP, JSON
 
+
 # Load waveform data
 println("Load waveform data\n")
 wf_path = "data/b4gic-gmd-wf.json"

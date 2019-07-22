@@ -1,6 +1,6 @@
 using DataFrames
 
-function print_dict(x; drop=["index","bus_i"])
+function printdict(x; drop=["index","bus_i"])
     drop_set = Set(drop)
 
     for (k,y) in x
@@ -12,12 +12,12 @@ function print_dict(x; drop=["index","bus_i"])
     end
 end
 
-function todf(case, table_name; solution=nothing)
+function todf(case, table_name; result=nothing)
     df = DataFrame()
     table = case[table_name]
 
-    if solution !== nothing
-        soln_table = solution[table_name]
+    if result !== nothing
+        soln_table = result["solution"][table_name]
     end
     
     cols = collect(keys(table))
