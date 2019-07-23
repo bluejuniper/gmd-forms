@@ -25,7 +25,7 @@ do2 = []
 do1d = []
 do2d = []
 
-import ipdb; ipdb.set_trace()
+# import ipdb; ipdb.set_trace()
 
 for i in range(len(t)):
     dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise_ss']
@@ -39,7 +39,7 @@ for i in range(len(t)):
     do2d.append(dK)    
 
 plt.subplot(1,2,1)
-plt.plot(t,do1,t,do1d)
+plt.plot(t,do1,t,do2)
 plt.subplot(1,2,2)
 plt.plot(t,do1d,t,do2d)
 plt.show()
