@@ -149,18 +149,7 @@ f = open(outfile,"w")
 JSON.print(f,output)
 close(f)    
 
-# t = wf_data["time"]
 
-# do1 = []
-# do2 = []
-
-# for i in 1:length(t)
-#     K = results["solution"]["nw"]["$i"]["branch"]["1"]["delta_topoilrise_ss"]
-#     push!(do1, K)
-# end
-
-# plot(t, do1)
-# plot!(t, do2)
 
 
  

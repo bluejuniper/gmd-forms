@@ -156,7 +156,7 @@ for i in 1:n
 end
 
 
-outfile = string("data/", net["name"], "_result.json")
+outfile = string("data/", net["name"], "_gmd_opf_ts_decoupled.json")
 println("\nSaving results to $outfile")
 f = open(outfile,"w")
 JSON.print(f,results)

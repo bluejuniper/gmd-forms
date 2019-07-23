@@ -38,17 +38,22 @@ results = PowerModelsGMD.run_ac_gmd_opf_ts_decoupled(net, solver, mods, setting)
 #   "Ieff"                 => Any[37.3225, 37.3225]
 #   "actual_hotspot"       => Any[49.5082, 49.5937]
 
-t = mods["time"]/
+t = mods["time"]
 do1 = [x["temperatures"]["delta_topoilrise_ss"][1] for x in results]
 do2 = [x["temperatures"]["delta_topoilrise_ss"][2] for x in results]
 plot(t, do1)
 plot!(t, do2)
 
+output = Dict()
+output["case"] = net
+output["result"] = results
+
+
 # Save results to output
 outfile = string("data/", net["name"], "-time-ext-result.json")
 println("\nSaving results to $outfile")
 f = open(outfile,"w")
-JSON.print(f,results)
+JSON.print(f, output)
 close(f)
 
 
