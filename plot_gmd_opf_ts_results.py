@@ -42,7 +42,7 @@ for i in range(len(t)):
     qf1 = decoupled_output['result'][i]['ac']['result']['solution']['branch']['1']['qf']
     ratea = decoupled_output['case']['branch']['1']['rate_a']
 
-    print(f'p, q = {pf1:0.2f}, {qf1:0.2f}, rate_a = {ratea}')
+    # print(f'p, q = {pf1:0.2f}, {qf1:0.2f}, rate_a = {ratea}')
 
 plt.subplot(1,2,1)
 plt.plot(t,do1,t,do2)
