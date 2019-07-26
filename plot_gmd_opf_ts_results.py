@@ -38,6 +38,12 @@ for i in range(len(t)):
     dK = decoupled_output['result'][i]['temperatures']['delta_topoilrise_ss'][1]
     do2d.append(dK)    
 
+    pf1 = decoupled_output['result'][i]['ac']['result']['solution']['branch']['1']['pf']
+    qf1 = decoupled_output['result'][i]['ac']['result']['solution']['branch']['1']['qf']
+    ratea = decoupled_output['case']['branch']['1']['rate_a']
+
+    print(f'p, q = {pf1:0.2f}, {qf1:0.2f}, rate_a = {ratea}')
+
 plt.subplot(1,2,1)
 plt.plot(t,do1,t,do2)
 plt.subplot(1,2,2)

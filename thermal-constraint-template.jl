@@ -15,7 +15,7 @@ include("thermal-constraint.jl")
 function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, delta_oil_rated=150)
     #temperature = ref(pm, nw, :storage, i)
 
-    branch = ref(pm, nw, :branch, i)
+    branch = PMs.ref(pm, nw, :branch, i)
     rate_a = branch["rate_a"]
 
     f_bus = branch["f_bus"]
