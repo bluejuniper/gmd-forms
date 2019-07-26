@@ -7,8 +7,7 @@ include("thermal-variable.jl")
 include("thermal-constraint.jl")
 include("thermal-constraint-template.jl")
 include("thermal-solution.jl")
-
-
+include("thermal-objective.jl")
 
 # -- F U N C T I O N S -- #
 
@@ -73,7 +72,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         end
     end
 
-    PowerModelsGMD.objective_gmd_min_fuel(pm)
+    objective_gmd_min_transformer_heating(pm)
 end
 
 
