@@ -112,9 +112,13 @@ setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
 
 results = []
 
+mod_net = deepcopy(raw_net)
+
+mod_net["load"]["1"]["pd"] *= 8
+mod_net["load"]["1"]["qd"] *= 8
 
 # Create replicates (multiples) of the network
-net = PMs.replicate(raw_net,n)
+net = PMs.replicate(mod_net, n)
 
 
 # Update values in each replicates
@@ -124,12 +128,16 @@ for repl in keys(net["nw"])
         #println("########## Time: $(t[i]) ########## \n")
 
         #update the vs values
-        for (k,wf) in waveforms
-            otype = wf["parent_type"]
-            field  = wf["parent_field"]
-            net["nw"][repl][otype][k][field] = wf["values"][i]
-        end        
-
+        # for (k,wf) in waveforms
+        #     otype = wf["parent_type"]
+        #     field  = wf["parent_field"]
+        #     net["nw"][repl][otype][k][field] = wf["values"][i]
+        # end 
+        
+        # zero out the gmd values
+        for (k,b) in net["nw"][repl]["gmd_branch"]
+            b["br_v"] = 0
+        end
     end
 
 end
