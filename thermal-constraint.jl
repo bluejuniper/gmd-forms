@@ -1,6 +1,33 @@
 using JuMP, PowerModels
 
 ### Temperature constraints ###
+# i is index of the (transformer) branch
+# fi is index of the "from" branch terminal
+function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)
+
+    # S = sqrt(bs["pf"]^2 + bs["qf"]^2)
+    # K = S/(branch["rate_a"] * base_mva) #calculate the loading
+
+    # # println("S: $S \nSmax: $(branch["rate_a"]) \n")
+
+    # # Assumptions: no-load, transformer losses are very small 
+    # # 75 = top oil temp rise at rated power
+    # # 25 = ambient temperature
+
+    # return delta_oil_rated*K^2
+    # println("Branch $i rating is $rate_a")
+
+    p_fr = PMs.var(pm, n, c, :p, fi) # real power
+    q_fr = PMs.var(pm, n, c, :q, fi) # reactive power
+    delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
+    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
+    # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
+    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
+
+    
+    #...old
+    #delta_oil_ss = var(pm, n, :ross, i) 
+end
 
 #   
 #
@@ -52,31 +79,6 @@ using JuMP, PowerModels
 #    # 30 = ambient temperature
 #    return delta_rated*K^2
 #end
-
-# i is index of the (transformer) branch
-# fi is index of the "from" branch terminal
-function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)
-
-    # S = sqrt(bs["pf"]^2 + bs["qf"]^2)
-    # K = S/(branch["rate_a"] * base_mva) #calculate the loading
-
-    # # println("S: $S \nSmax: $(branch["rate_a"]) \n")
-
-    # # Assumptions: no-load, transformer losses are very small 
-    # # 75 = top oil temp rise at rated power
-    # # 25 = ambient temperature
-
-    # return delta_oil_rated*K^2
-    println("Branch $i rating is $rate_a")
-
-    p_fr = PMs.var(pm, n, c, :p, fi) # real power
-    q_fr = PMs.var(pm, n, c, :q, fi) # reactive power
-    delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
-    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
-
-    #...old
-    #delta_oil_ss = var(pm, n, :ross, i) 
-end
 
 
 #

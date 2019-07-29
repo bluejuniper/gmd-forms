@@ -10,6 +10,7 @@ h = open(wf_path)
 mods = JSON.parse(h)
 close(h)
 
+mods["waveforms"] = nothing
 
 # Load case data
 println("Load case data\n")
@@ -50,7 +51,7 @@ output["result"] = results
 
 
 # Save results to output
-outfile = string("data/", net["name"], "-time-ext-result.json")
+outfile = string("data/", net["name"], "_gmd_opf_ts_decoupled.json")
 println("\nSaving results to $outfile")
 f = open(outfile,"w")
 JSON.print(f, output)
