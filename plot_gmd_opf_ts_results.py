@@ -56,27 +56,31 @@ for i in range(len(t)):
 
     # print(f'p, q = {pf1:0.2f}, {qf1:0.2f}, rate_a = {ratea}')
 
-# plt.subplot(1,2,1)
-# plt.plot(t,do1,'.-',t,do2,'.-')
-# plt.title('Coupled')
-# plt.legend(['XF1','XF3'])
-
-# plt.subplot(1,2,2)
-# plt.plot(t,do1d,'.-',t,do2d,'.-')
-# plt.legend(['XF1','XF3'])
-# plt.title('Decoupled')
-# plt.show()
+### Temperatures ###
 
 plt.subplot(1,2,1)
-plt.plot(t,p,'.-',t,q,'.-')
+plt.plot(t,do1,'.-',t,do2,'.-')
 plt.title('Coupled')
-plt.legend(['P', 'Q'])
+plt.legend(['XF1','XF3'])
 
 plt.subplot(1,2,2)
-plt.plot(t,pd,'.-',t,qd,'.-')
-plt.legend(['P', 'Q'])
+plt.plot(t,do1d,'.-',t,do2d,'.-')
+plt.legend(['XF1','XF3'])
 plt.title('Decoupled')
 plt.show()
+
+### Powers ###
+
+# plt.subplot(1,2,1)
+# plt.plot(t,p,'.-',t,q,'.-')
+# plt.title('Coupled')
+# plt.legend(['P', 'Q'])
+
+# plt.subplot(1,2,2)
+# plt.plot(t,pd,'.-',t,qd,'.-')
+# plt.legend(['P', 'Q'])
+# plt.title('Decoupled')
+# plt.show()
 
 # plot the decoupled powers
 # plt.plot(t,p,t,q)
