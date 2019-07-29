@@ -20,8 +20,11 @@ function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::I
     p_fr = PMs.var(pm, n, c, :p, fi) # real power
     q_fr = PMs.var(pm, n, c, :q, fi) # reactive power
     delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
-    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
+    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
+    # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
+    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
 
+    
     #...old
     #delta_oil_ss = var(pm, n, :ross, i) 
 end
