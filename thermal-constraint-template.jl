@@ -29,15 +29,15 @@ end
 
 # really should move these parameters into the model, this is rather clunky
 ""
-function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, tau_hs=150, Re=0.63, delta_oil_init=75)
+function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, delta_oil_init=nothing)
     #temperature = ref(pm, nw, :storage, i)
 
-    if haskey(pm.data, "time_elapsed")
-        time_elapsed = pm.data["time_elapsed"]
-    else
-        warn("network data should specify time_elapsed, using 1.0 as a default")
-        time_elapsed = 1.0
-    end
+    # if haskey(pm.data, "time_elapsed")
+    #     time_elapsed = pm.data["time_elapsed"]
+    # else
+    #     warn("network data should specify time_elapsed, using 1.0 as a default")
+    #     time_elapsed = 1.0
+    # end
 
     branch = ref(pm, nw, i)
     f_bus = branch["f_bus"]
@@ -45,19 +45,24 @@ function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.
     f_idx = (i, f_bus, t_bus)
     cnd = 1 # only support positive sequence for now
 
-    constraint_temperature_state_initial(pm, nw, i, f_idx, cnd, delta_oil_init, tau, time_elapsed)
+    if delta_oil_init === nothing
+        constraint_temperature_state_initial(pm, nw, i, f_idx, cnd)
+    else
+        constraint_temperature_state_initial(pm, nw, i, f_idx, cnd, delta_oil_init)
+    end        
 end
 
-#""
-#function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int)
+""
+function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int, tau_oil=4260, delta_t=10)
 #    temperature = ref(pm, nw_2, :storage, i)
-#
+
 #    if haskey(pm.data, "time_elapsed")
 #        time_elapsed = pm.data["time_elapsed"]
 #    else
 #        warn("network data should specify time_elapsed, using 1.0 as a default")
 #        time_elapsed = 1.0
 #    end
-#
-#    constraint_temperature_state(pm, nw_1, nw_2, i, temperature["charge_efficiency"], temperature["discharge_efficiency"], time_elapsed)
-#end
+
+    tau = 2*tau_oil/delta_t
+   constraint_temperature_state(pm, nw_1, nw_2, i, tau)
+end

@@ -29,6 +29,28 @@ function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::I
     #delta_oil_ss = var(pm, n, :ross, i) 
 end
 
+
+# i is index of the (transformer) branch
+# fi is index of the "from" branch terminal
+function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int)
+   # assume that transformer starts at equilibrium 
+   @constraint(pm.model, delta_oil == delta_oil_ss)
+end
+
+function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int, delta_oil_init)
+   @constraint(pm.model, delta_oil == delta_oil_init)
+end
+
+function constraint_temperature_state(pm::genericpowermodel, n_1::int, n_2::int, i::int, tau)
+   delta_oil_ss = var(pm, n_2, :ross, i) 
+   delta_oil_ss_prev = var(pm, n_1, :ross, i)
+   delta_oil = var(pm, n_2, :ro, i) 
+   delta_oil_prev = var(pm, n_1, :ro, i)
+
+  #@constraint(pm.model, se - energy == time_elapsed*(charge_eff*sc - sd/discharge_eff))
+   @constraint(pm.model, (1 + tau)*delta_oil = delta_oil_ss + delta_oil_ss_prev) - (1 - tau)*delta_oil_prev)
+end
+
 #   
 #
 #""
@@ -81,25 +103,7 @@ end
 #end
 
 
-#
-# i is index of the (transformer) branch
-# fi is index of the "from" branch terminal
-#function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int, delta_oil_init, tau, time_elapsed)
-#    delta_oil = var(pm, n, :ro, i) # top-oil temperature rise
-#    #@constraint(pm.model, se - energy == time_elapsed*(charge_eff*sc - sd/discharge_eff))
-#    # delta_oil = (delta_oil_ss + delta_oil_ss_prev)/(1 + tau) - delta_oil_prev*(1 - tau)/(1 + tau)
-#    # assume that transformer starts at equilibrium 
-#    @constraint(pm.model, delta_oil == (delta_oil_ss + delta_oil_init)/(1 + tau) - delta_oil_init*(1 - tau)/(1 + tau))
-#end
 
-#function constraint_temperature_state(pm::genericpowermodel, n_1::int, n_2::int, i::int, charge_eff, discharge_eff, time_elapsed)
-#    sc_2 = var(pm, n_2, :sc, i)
-#    sd_2 = var(pm, n_2, :sd, i)
-#    se_2 = var(pm, n_2, :se, i)
-#    se_1 = var(pm, n_1, :se, i)
-#    # delta_oil = (delta_oil_ss + delta_oil_ss_prev)/(1 + tau) - delta_oil_prev*(1 - tau)/(1 + tau)
-#    @constraint(pm.model, se_2 - se_1 == time_elapsed*(charge_eff*sc_2 - sd_2/discharge_eff))
-#end
 #
 #function constraint_temperature_complementarity(pm::genericpowermodel, n::int, i)
 #    sc = var(pm, n, :sc, i)
