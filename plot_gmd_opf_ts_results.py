@@ -32,10 +32,16 @@ pd = []
 qd = []
 
 for i in range(len(t)):
-    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise_ss']
+    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise_ss']
+    # do1.append(dK)
+    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise_ss']
+    # do2.append(dK)    
+
+    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise']
     do1.append(dK)
-    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise_ss']
+    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise']
     do2.append(dK)    
+
 
     pf1 = output['result']['solution']['nw'][str(i+1)]['branch']['1']['pf']
     qf1 = output['result']['solution']['nw'][str(i+1)]['branch']['1']['qf']

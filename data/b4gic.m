@@ -68,3 +68,5 @@ mpc.bus_gmd = {
 	40	-87	
 };
 
+% seconds
+mpc.time_elapsed = 10.0

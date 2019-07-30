@@ -1,6 +1,7 @@
-using PowerModels, PowerModelsGMD, Ipopt, JuMP, JSON, Plots
+using PowerModels, PowerModelsGMD, Ipopt, JuMP, JSON, Plots, Memento
 #CSV, DataFrames
 
+const _LOGGER = Memento.getlogger(@__MODULE__)
 const PMs = PowerModels
 
 include("thermal-variable.jl")

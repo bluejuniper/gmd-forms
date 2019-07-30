@@ -32,23 +32,25 @@ end
 
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal
-function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int)
+function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int)
    # assume that transformer starts at equilibrium 
+   delta_oil = var(pm, n, c, :ro, i) 
+   delta_oil_ss = var(pm, n, c, :ross, i) 
    @constraint(pm.model, delta_oil == delta_oil_ss)
 end
 
-function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi::Int, c::Int, delta_oil_init)
-   @constraint(pm.model, delta_oil == delta_oil_init)
+function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, delta_oil_init)
+    delta_oil = var(pm, n, c, :ro, i) 
+    @constraint(pm.model, delta_oil == delta_oil_init)
 end
 
-function constraint_temperature_state(pm::genericpowermodel, n_1::int, n_2::int, i::int, tau)
-   delta_oil_ss = var(pm, n_2, :ross, i) 
-   delta_oil_ss_prev = var(pm, n_1, :ross, i)
-   delta_oil = var(pm, n_2, :ro, i) 
-   delta_oil_prev = var(pm, n_1, :ro, i)
+function constraint_temperature_state(pm::GenericPowerModel, n_1::Int, n_2::Int, i::Int, c::Int, tau)
+   delta_oil_ss = var(pm, n_2, c, :ross, i) 
+   delta_oil_ss_prev = var(pm, n_1, c, :ross, i)
+   delta_oil = var(pm, n_2, c, :ro, i) 
+   delta_oil_prev = var(pm, n_1, c, :ro, i)
 
-  #@constraint(pm.model, se - energy == time_elapsed*(charge_eff*sc - sd/discharge_eff))
-   @constraint(pm.model, (1 + tau)*delta_oil = delta_oil_ss + delta_oil_ss_prev) - (1 - tau)*delta_oil_prev)
+   @constraint(pm.model, (1 + tau)*delta_oil == delta_oil_ss + delta_oil_ss_prev - (1 - tau)*delta_oil_prev)
 end
 
 #   
