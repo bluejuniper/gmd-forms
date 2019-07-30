@@ -37,12 +37,12 @@ end
 
 # need to add tau_oil into the model
 ""
-function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int, tau_oil=4260)
+function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int, tau_oil=150)
     if haskey(ref(pm, nw_1), :time_elapsed)
         delta-t = ref(pm, nw_1, :time_elapsed)
     else
-        Memento.warn(_LOGGER, "network data should specify time_elapsed, using 1.0 as a default")
-        delta_t = 1.0
+        Memento.warn(_LOGGER, "network data should specify time_elapsed, using 10 as a default")
+        delta_t = 10.0
     end
     
     cnd = 1
