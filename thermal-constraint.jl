@@ -15,7 +15,7 @@ function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::I
     # # 25 = ambient temperature
 
     # return delta_oil_rated*K^2
-    # println("Branch $i rating is $rate_a")
+    println("Branch $i rating: $rate_a, TO rise: $delta_oil_rated")
 
     p_fr = PMs.var(pm, n, c, :p, fi) # real power
     q_fr = PMs.var(pm, n, c, :q, fi) # reactive power

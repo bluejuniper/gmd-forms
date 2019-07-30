@@ -12,7 +12,7 @@ include("thermal-constraint.jl")
 
 # really should move these parameters into the model, this is rather clunky
 ""
-function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, delta_oil_rated=150)
+function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, delta_oil_rated=75)
     #temperature = ref(pm, nw, :storage, i)
 
     branch = PMs.ref(pm, nw, :branch, i)
