@@ -20,7 +20,8 @@ net["name"] = "B4GIC"
 base_mva = net["baseMVA"]
 println("")
 
-
+net["load"]["1"]["pd"] = 8000
+net["load"]["1"]["qd"] = 4000
 
 
 # Running model
