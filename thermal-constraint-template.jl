@@ -44,7 +44,10 @@ function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, 
         Memento.warn(_LOGGER, "network data should specify time_elapsed, using 10 as a default")
         delta_t = 10.0
     end
-    
+
+    #    branch = PMs.ref(pm, nw, cnd, :branch, i)
+
+#branch["top_oil"]
     cnd = 1
 
     tau = 2*tau_oil/delta_t
