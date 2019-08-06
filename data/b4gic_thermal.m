@@ -56,9 +56,9 @@ mpc.gmd_branch = {
 
 %column_names%  hi_bus lo_bus gmd_br_hi gmd_br_lo gmd_k gmd_br_series gmd_br_common baseMVA type config topoil_time_const topoil_init topoil_initialized
 mpc.branch_gmd = {
-	1	3	1	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	4260	0	1
+	1	3	1	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	71	0	1
 	1	2	-1	-1	0	-1	-1	100	'line'	'none'	-1	-1	-1
-	2	4	3	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	4260	0	1
+	2	4	3	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	71	0	1
 };
 
 %column_names%  lat lon
@@ -69,3 +69,5 @@ mpc.bus_gmd = {
 	40	-87	
 };
 
+% minutes
+mpc.time_elapsed = 5.0
