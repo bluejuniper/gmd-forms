@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import numpy as np
 import matplotlib.pyplot as plt
 import json, os
 
@@ -31,12 +32,7 @@ q = []
 pd = []
 qd = []
 
-for i in range(len(t)):
-    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise_ss']
-    # do1.append(dK)
-    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise_ss']
-    # do2.append(dK)    
-
+for i in range(len(output['result']['solution']['nw'])):
     dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise']
     do1.append(dK)
     dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise']
@@ -47,6 +43,18 @@ for i in range(len(t)):
     qf1 = output['result']['solution']['nw'][str(i+1)]['branch']['1']['qf']
     p.append(pf1)
     q.append(qf1)
+    
+n = len(p)
+dt = 5
+tc = np.linspace(0, dt*n, n)
+
+for i in range(len(t)):
+    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise_ss']
+    # do1.append(dK)
+    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise_ss']
+    # do2.append(dK)    
+
+
 
     dK = decoupled_output['result'][i]['temperatures']['delta_topoilrise_ss'][0]
     do1d.append(dK)
@@ -63,9 +71,10 @@ for i in range(len(t)):
     # print(f'p, q = {pf1:0.2f}, {qf1:0.2f}, rate_a = {ratea}')
 
 ### Temperatures ###
+# import ipdb; ipdb.set_trace()
 
 plt.subplot(1,2,1)
-plt.plot(t,do1,'.-',t,do2,'.-')
+plt.plot(tc,do1,'.-',tc,do2,'.-')
 plt.title('Coupled')
 plt.legend(['XF1','XF3'])
 
@@ -73,12 +82,11 @@ plt.subplot(1,2,2)
 plt.plot(t,do1d,'.-',t,do2d,'.-')
 plt.legend(['XF1','XF3'])
 plt.title('Decoupled')
-plt.show()
 
 ### Powers ###
 
 # plt.subplot(1,2,1)
-# plt.plot(t,p,'.-',t,q,'.-')
+# plt.plot(tc,p,'.-',tc,q,'.-')
 # plt.title('Coupled')
 # plt.legend(['P', 'Q'])
 
@@ -90,4 +98,5 @@ plt.show()
 
 # plot the decoupled powers
 # plt.plot(t,p,t,q)
-# plt.show()
+
+plt.show()

@@ -42,12 +42,27 @@ end
 
 # need to add tau_oil into the model
 ""
+<<<<<<< HEAD
+function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int, tau_oil=150)
+    if haskey(ref(pm, nw_1), :time_elapsed)
+        delta-t = ref(pm, nw_1, :time_elapsed)
+    else
+        Memento.warn(_LOGGER, "network data should specify time_elapsed, using 10 as a default")
+        delta_t = 10.0
+    end
+
+    #    branch = PMs.ref(pm, nw, cnd, :branch, i)
+
+#branch["top_oil"]
+    cnd = 1
+=======
 function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int)
     branch = ref(pm, nw_1, :branch, i)
 
     if branch["topoil_time_const"] >= 0
         tau_oil = branch["topoil_time_const"]
         delta_t = 5
+>>>>>>> dce715894d034c4dcc1b40f14d39718f69f8b499
 
         if haskey(ref(pm, nw_1), :time_elapsed)
             delta-t = ref(pm, nw_1, :time_elapsed)

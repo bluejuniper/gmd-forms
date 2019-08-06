@@ -77,7 +77,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
     n_1 = network_ids[1]
     for i in ids(pm, :branch, nw=n_1)
-        constraint_temperature_state(pm, i, nw=n_1; delta_oil_init=0)
+        constraint_temperature_state(pm, i, nw=n_1)
     end
 
     for n_2 in network_ids[2:end]
@@ -99,27 +99,34 @@ end
 println("")
 
 # Load waveform data
+# Not using for now
 println("Load waveform data\n")
 wf_path = "data/b4gic-gmd-wf.json"
 h = open(wf_path)
 wf_data = JSON.parse(h)
 close(h)
 
-timesteps = wf_data["time"]
-n = length(timesteps)
-t = range(0, stop=(3600*3*3), length=n)
-Delta_t = t[2]-t[1]
-waveforms = wf_data["waveforms"]
+
 
 
 # Load case data
 println("Load case data\n")
-path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/b4gic.m")
+# path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/b4gic.m")
+path = "data/b4gic_thermal.m"
 raw_net = PMs.parse_file(path)
 raw_net["name"] = "B4GIC"
 base_mva = raw_net["baseMVA"]
 println("")
 
+
+# timesteps = wf_data["time"]
+# n = length(timesteps)
+T = 60*3
+n = Int(ceil(T/raw_net["time_elapsed"]))
+t = range(0, stop=T, length=n)
+delta_t = raw_net["time_elapsed"]
+# not using for now
+waveforms = wf_data["waveforms"]
 
 # Running model
 solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
