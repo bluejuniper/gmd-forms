@@ -77,7 +77,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
     n_1 = network_ids[1]
     for i in ids(pm, :branch, nw=n_1)
-        constraint_temperature_state(pm, i, nw=n_1; delta_oil_init=0)
+        constraint_temperature_state(pm, i, nw=n_1)
     end
 
     for n_2 in network_ids[2:end]
@@ -114,7 +114,8 @@ waveforms = wf_data["waveforms"]
 
 # Load case data
 println("Load case data\n")
-path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/b4gic.m")
+# path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/b4gic.m")
+path = "data/b4gic_thermal.m"
 raw_net = PMs.parse_file(path)
 raw_net["name"] = "B4GIC"
 base_mva = raw_net["baseMVA"]

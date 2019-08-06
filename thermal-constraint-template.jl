@@ -21,23 +21,26 @@ end
 
 # really should move these parameters into the model, this is rather clunky
 ""
-function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, delta_oil_init=nothing)
+function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
     branch = ref(pm, nw, :branch, i)
     f_bus = branch["f_bus"]
     t_bus = branch["t_bus"]
     f_idx = (i, f_bus, t_bus)
     cnd = 1 # only support positive sequence for now
 
-    if delta_oil_init === nothing
-        constraint_temperature_state_initial(pm, nw, i, f_idx, cnd)
+    if branch["topoil_initialized"] > 0
+        constraint_temperature_state_initial(pm, nw, i, f_idx, cnd, branch["topoil_init"])
     else
-        constraint_temperature_state_initial(pm, nw, i, f_idx, cnd, delta_oil_init)
+        constraint_temperature_state_initial(pm, nw, i, f_idx, cnd)
     end        
 end
 
 # need to add tau_oil into the model
 ""
-function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int, tau_oil=150)
+function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int)
+    branch = ref(pm, nw_1, :branch, i)
+    tau_oil = branch["topoil_time_const"]
+
     if haskey(ref(pm, nw_1), :time_elapsed)
         delta-t = ref(pm, nw_1, :time_elapsed)
     else
