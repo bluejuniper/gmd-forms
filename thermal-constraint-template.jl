@@ -40,6 +40,7 @@ function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.
     end
 end
 
+
 # need to add tau_oil into the model
 ""
 function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int)
@@ -60,5 +61,33 @@ function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, 
         tau = 2*tau_oil/delta_t
         println("Oil Tau: $tau_oil, DT: $delta_t, tau: $tau")
         constraint_temperature_state(pm, nw_1, nw_2, i, cnd, tau)
+    end
+end
+
+
+""
+function constraint_hotspot_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
+    # delta_hotspotrise_ss = 0
+    # Ie = branch["ieff"]
+    # delta_hotspotrise_ss = Re*Ie
+    # branch["delta_hotspotrise_ss"] = delta_hotspotrise_ss
+
+    branch = PMs.ref(pm, nw, :branch, i)
+
+    if branch["topoil_time_const"] >= 0
+        Re = 0.63
+
+        if "hotspot_coeff" in keys(branch)
+            Re = branch["hotspot_coeff"]
+        end
+
+        rate_a = branch["rate_a"]
+
+        f_bus = branch["f_bus"]
+        t_bus = branch["t_bus"]
+        f_idx = (i, f_bus, t_bus)
+        cnd = 1 # only support positive sequence for now
+
+        constraint_hotspot_temperature_steady_state(pm, nw, i, f_idx, cnd, rate_a, Re)
     end
 end
