@@ -33,8 +33,8 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
         variable_delta_oil_ss(pm, nw=n)
         variable_delta_oil(pm, nw=n)
-        variable_delta_hotspot_ss(pm, nw=n)
-        variable_delta_hotspot(pm, nw=n)
+        # variable_delta_hotspot_ss(pm, nw=n)
+        # variable_delta_hotspot(pm, nw=n)
 
         PMs.constraint_model_voltage(pm, nw=n)
 
@@ -58,7 +58,9 @@ function post_gic_opf_ts(pm::GenericPowerModel)
             PMs.constraint_thermal_limit_from(pm, i, nw=n)
             PMs.constraint_thermal_limit_to(pm, i, nw=n)
 
-            constraint_temperature_state_ss(pm, i, nw=n) # => key :ross not found [?]
+            constraint_temperature_state_ss(pm, i, nw=n) 
+            # constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
+            # constraint_hotspot_temperature_state(pm, i, nw=n)                         
         end
 
         ### DC network constraints ###
@@ -75,19 +77,19 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         end
     end
 
-    network_ids = sort(collect(nw_ids(pm)))
+    # network_ids = sort(collect(nw_ids(pm)))
 
-    n_1 = network_ids[1]
-    for i in ids(pm, :branch, nw=n_1)
-        constraint_temperature_state(pm, i, nw=n_1)
-    end
+    # n_1 = network_ids[1]
+    # for i in ids(pm, :branch, nw=n_1)
+    #     constraint_temperature_state(pm, i, nw=n_1)
+    # end
 
-    for n_2 in network_ids[2:end]
-        for i in ids(pm, :branch, nw=n_2)
-            constraint_temperature_state(pm, i, n_1, n_2)
-        end
-        n_1 = n_2
-    end
+    # for n_2 in network_ids[2:end]
+    #     for i in ids(pm, :branch, nw=n_2)
+    #         constraint_temperature_state(pm, i, n_1, n_2)
+    #     end
+    #     n_1 = n_2
+    # end
 
     objective_gmd_min_transformer_heating(pm)
 end
@@ -138,8 +140,8 @@ results = []
 
 mod_net = deepcopy(raw_net)
 
-mod_net["load"]["1"]["pd"] = 8000
-mod_net["load"]["1"]["qd"] = 4000
+# mod_net["load"]["1"]["pd"] = 4000
+# mod_net["load"]["1"]["qd"] = 2000
 
 # Create replicates (multiples) of the network
 net = PMs.replicate(mod_net, n)

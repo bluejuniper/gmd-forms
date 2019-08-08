@@ -79,9 +79,9 @@ plt.title('Coupled')
 plt.legend(['XF1','XF3'])
 
 plt.subplot(1,2,2)
-plt.plot(t,do1d,'.-',t,do2d,'.-')
-plt.legend(['XF1','XF3'])
-plt.title('Decoupled')
+# plt.plot(t,do1d,'.-',t,do2d,'.-')
+# plt.legend(['XF1','XF3'])
+# plt.title('Decoupled')
 
 ### Powers ###
 

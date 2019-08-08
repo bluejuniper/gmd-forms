@@ -54,11 +54,11 @@ mpc.gmd_branch = {
 	4	2	3	1	0.1	0	0	'dc_xf2_hi'	
 };
 
-%column_names%  hi_bus lo_bus gmd_br_hi gmd_br_lo gmd_k gmd_br_series gmd_br_common baseMVA type config topoil_time_const topoil_init topoil_initialized
+%column_names%  hi_bus lo_bus gmd_br_hi gmd_br_lo gmd_k gmd_br_series gmd_br_common baseMVA type config topoil_time_const topoil_rated topoil_init topoil_initialized hotspot_coeff
 mpc.branch_gmd = {
-	1	3	1	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	71	0	1
-	1	2	-1	-1	0	-1	-1	100	'line'	'none'	-1	-1	-1
-	2	4	3	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	71	0	1
+	1	3	1	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	71	75	0	1	0.63
+	1	2	-1	-1	0	-1	-1	100	'line'	'none'	-1	-1	-1	-1	-1
+	2	4	3	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	71	75	0	1	0.63
 };
 
 %column_names%  lat lon

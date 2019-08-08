@@ -22,7 +22,6 @@ function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=
 end
 
 
-# really should move these parameters into the model, this is rather clunky
 ""
 function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
     branch = ref(pm, nw, :branch, i)
@@ -41,7 +40,6 @@ function constraint_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.
 end
 
 
-# need to add tau_oil into the model
 ""
 function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, nw_2::Int)
     branch = ref(pm, nw_1, :branch, i)
@@ -67,12 +65,12 @@ end
 
 ""
 function constraint_hotspot_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
-    # delta_hotspotrise_ss = 0
-    # Ie = branch["ieff"]
-    # delta_hotspotrise_ss = Re*Ie
-    # branch["delta_hotspotrise_ss"] = delta_hotspotrise_ss
-
     branch = PMs.ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    cnd = 1 # only support positive sequence for now
+    rate_a = branch["rate_a"]
 
     if branch["topoil_time_const"] >= 0
         Re = 0.63
@@ -81,13 +79,21 @@ function constraint_hotspot_temperature_state_ss(pm::GenericPowerModel, i::Int; 
             Re = branch["hotspot_coeff"]
         end
 
-        rate_a = branch["rate_a"]
-
-        f_bus = branch["f_bus"]
-        t_bus = branch["t_bus"]
-        f_idx = (i, f_bus, t_bus)
-        cnd = 1 # only support positive sequence for now
-
         constraint_hotspot_temperature_steady_state(pm, nw, i, f_idx, cnd, rate_a, Re)
+    end
+end
+
+
+# really should move these parameters into the model, this is rather clunky
+""
+function constraint_hotspot_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
+    branch = ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    cnd = 1 # only support positive sequence for now
+
+    if branch["topoil_time_const"] >= 0
+        constraint_hotspot_temperature(pm, nw, i, f_idx, cnd)
     end
 end
