@@ -30,10 +30,13 @@ def timeseries(output, table, row, field):
         
     return values
 
-do = timeseries(output, 'branch', '1', 'delta_topoilrise')
-dhs = timeseries(output, 'branch', '1', 'delta_hotspotrise_ss')
+doss = timeseries(output, 'branch', '1', 'topoil_ss')
+do = timeseries(output, 'branch', '1', 'topoil')
+dhsss = timeseries(output, 'branch', '1', 'hotspot_ss')
+dhs = timeseries(output, 'branch', '1', 'hotspot')
 p = timeseries(output, 'branch', '1', 'pf')
 q = timeseries(output, 'branch', '1', 'qf')
+ieff = timeseries(output, 'branch', '1', 'gmd_idc_mag')
 
     
 n = len(p)
@@ -63,10 +66,27 @@ tc = np.linspace(0, dt*n, n)
 ### Temperatures ###
 # import ipdb; ipdb.set_trace()
 
+plt.subplot(2,2,1)
+plt.plot(tc,doss,'.-',tc,do,'.-')
+plt.title('Top-Oil')
 
-plt.plot(tc,do,'.-',tc,dhs,'.-')
-plt.title('Temperatures')
-plt.legend(['Top-oil', 'Hotspot'])
+plt.subplot(2,2,2)
+plt.plot(tc,dhsss,'.-',tc,dhs,'.-')
+plt.title('Hotspot')
+plt.ylim(0, 1.1*max(dhs))
+
+
+plt.subplot(2,2,3)
+plt.plot(tc,ieff,'.-')
+plt.title('Ieff')
+plt.ylim(0, 1.1*max(ieff))
+
+plt.subplot(2,2,4)
+plt.plot(tc,p,'.-',tc,q,'.-')
+plt.title('Power')
+plt.ylim(0, 1.1*max(p))
+plt.legend(['P', 'Q'])
+
 
 
 # plt.plot(t,do1d,'.-',t,do2d,'.-')

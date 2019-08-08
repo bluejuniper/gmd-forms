@@ -32,6 +32,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PowerModelsGMD.variable_dc_line_flow(pm, nw=n)
 
         variable_delta_oil_ss(pm, nw=n)
+        variable_oil_ss(pm, nw=n)
         variable_delta_oil(pm, nw=n)
         variable_delta_hotspot_ss(pm, nw=n)
         variable_delta_hotspot(pm, nw=n)
@@ -58,6 +59,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
             PMs.constraint_thermal_limit_from(pm, i, nw=n)
             PMs.constraint_thermal_limit_to(pm, i, nw=n)
 
+            constraint_temperature_rise_ss(pm, i, nw=n) 
             constraint_temperature_state_ss(pm, i, nw=n) 
             constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
             constraint_hotspot_temperature_state(pm, i, nw=n)                         
@@ -93,12 +95,6 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
     objective_gmd_min_transformer_heating(pm)
 end
-
-
-
-
-
-# -- T E S T I N G -- #
 
 println("")
 
@@ -140,35 +136,14 @@ results = []
 
 mod_net = deepcopy(raw_net)
 
-mod_net["load"]["1"]["pd"] = 8
-mod_net["load"]["1"]["qd"] = 4
+mva_base = 100
+mod_net["load"]["1"]["pd"] = 1000/mva_base
+mod_net["load"]["1"]["qd"] = 200/mva_base
 
 mod_net["gmd_branch"]["2"]["br_v"] = 100
 
 # Create replicates (multiples) of the network
 net = PMs.replicate(mod_net, n)
-
-
-# Update values in each replicates
-# for repl in keys(net["nw"])
-
-#     for i in 1:n
-        #println("########## Time: $(t[i]) ########## \n")
-
-        #update the vs values
-        # for (k,wf) in waveforms
-        #     otype = wf["parent_type"]
-        #     field  = wf["parent_field"]
-        #     net["nw"][repl][otype][k][field] = wf["values"][i]
-        # end 
-        
-        # zero out the gmd values
-#         for (k,b) in net["nw"][repl]["gmd_branch"]
-#             b["br_v"] = 0
-#         end
-#     end
-
-# end
 
 println("Running model: $(raw_net["name"]) \n")
 results = run_gic_opf_ts(net, PowerModelsGMD.ACPPowerModel, solver; setting=setting)

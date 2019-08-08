@@ -4,7 +4,7 @@ include("thermal-constraint.jl")
 
 # really should move these parameters into the model, this is rather clunky
 ""
-function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw, delta_oil_rated=75)
+function constraint_temperature_rise_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
     #temperature = ref(pm, nw, :storage, i)
 
     branch = PMs.ref(pm, nw, :branch, i)
@@ -17,9 +17,29 @@ function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=
         f_idx = (i, f_bus, t_bus)
         cnd = 1 # only support positive sequence for now
 
-        constraint_temperature_steady_state(pm, nw, i, f_idx, cnd, rate_a, delta_oil_rated)
+        constraint_temperature_steady_state(pm, nw, i, f_idx, cnd, rate_a, branch["topoil_rated"])
     end
 end
+
+
+""
+function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
+    #temperature = ref(pm, nw, :storage, i)
+
+    branch = PMs.ref(pm, nw, :branch, i)
+
+    if branch["topoil_time_const"] >= 0
+        rate_a = branch["rate_a"]
+
+        f_bus = branch["f_bus"]
+        t_bus = branch["t_bus"]
+        f_idx = (i, f_bus, t_bus)
+        cnd = 1 # only support positive sequence for now
+
+        constraint_temperature_rise_steady_state(pm, nw, i, f_idx, cnd, rate_a, branch["temperature_ambient"])
+    end
+end
+
 
 
 ""
