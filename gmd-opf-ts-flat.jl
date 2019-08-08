@@ -33,6 +33,8 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
         variable_delta_oil_ss(pm, nw=n)
         variable_delta_oil(pm, nw=n)
+        variable_delta_hotspot_ss(pm, nw=n)
+        variable_delta_hotspot(pm, nw=n)
 
         PMs.constraint_model_voltage(pm, nw=n)
 

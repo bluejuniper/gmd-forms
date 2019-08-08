@@ -12,6 +12,8 @@ function get_gmd_ts_solution(pm::PMs.GenericPowerModel, sol::Dict{String,Any})
 
     add_setpoint_temperature_steady_state!(sol, pm)
     add_setpoint_temperature!(sol, pm)
+    add_setpoint_hotspot_temperature_steady_state!(sol, pm)
+    add_setpoint_hotspot_temperature!(sol, pm)
 end
 
 function add_setpoint_temperature_steady_state!(sol, pm::PMs.GenericPowerModel)
@@ -20,4 +22,12 @@ end
 
 function add_setpoint_temperature!(sol, pm::PMs.GenericPowerModel)
     PMs.add_setpoint!(sol, pm, "branch", "delta_topoilrise", :ro, status_name="br_status")
+end
+
+function add_setpoint_hotspot_temperature_steady_state!(sol, pm::PMs.GenericPowerModel)
+    PMs.add_setpoint!(sol, pm, "branch", "delta_hotspotrise_ss", :hsss, status_name="br_status")
+end
+
+function add_setpoint_hotspot_temperature!(sol, pm::PMs.GenericPowerModel)
+    PMs.add_setpoint!(sol, pm, "branch", "delta_hotspotrise", :hs, status_name="br_status")
 end
