@@ -3,7 +3,7 @@ using JuMP, PowerModels
 ### Temperature constraints ###
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal
-function constraint_temperature_rise_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)
+function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)
     # return delta_oil_rated*K^2
     println("Branch $i rating: $rate_a, TO rise: $delta_oil_rated")
 
@@ -15,14 +15,14 @@ function constraint_temperature_rise_steady_state(pm::GenericPowerModel, n::Int,
     JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
 end
 
-function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, temp_ambient)
+function constraint_temperature_absolute_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, temp_ambient)
     # return delta_oil_rated*K^2
     println("Branch $i rating: $rate_a, Ambient temp: $temp_ambient")
 
     p_fr = PMs.var(pm, n, c, :p, fi) # real power
     q_fr = PMs.var(pm, n, c, :q, fi) # reactive power
     delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
-    oil_ss = PMs.var(pm, n, c, :oss, i) # top-oil temperature rise
+    oil_ss = PMs.var(pm, n, c, :rossa, i) # top-oil temperature rise
 
     # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
     # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
@@ -36,7 +36,7 @@ end
 function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int)
    # assume that transformer starts at equilibrium 
    delta_oil = var(pm, n, c, :ro, i) 
-   delta_oil_ss = var(pm, n, c, :oss, i) 
+   delta_oil_ss = var(pm, n, c, :ross, i) 
    @constraint(pm.model, delta_oil == delta_oil_ss)
 end
 
@@ -46,8 +46,8 @@ function constraint_temperature_state_initial(pm::GenericPowerModel, n::Int, i::
 end
 
 function constraint_temperature_state(pm::GenericPowerModel, n_1::Int, n_2::Int, i::Int, c::Int, tau)
-   delta_oil_ss = var(pm, n_2, c, :oss, i) 
-   delta_oil_ss_prev = var(pm, n_1, c, :oss, i)
+   delta_oil_ss = var(pm, n_2, c, :ross, i) 
+   delta_oil_ss_prev = var(pm, n_1, c, :ross, i)
    delta_oil = var(pm, n_2, c, :ro, i) 
    delta_oil_prev = var(pm, n_1, c, :ro, i)
 
@@ -68,5 +68,13 @@ function constraint_hotspot_temperature(pm::GenericPowerModel, n::Int, i::Int, f
     delta_hotspot_ss = PMs.var(pm, n, c, :hsss, i) 
     delta_hotspot = PMs.var(pm, n, c, :hs, i) 
     oil_temp = PMs.var(pm, n, c, :ro, i)
-    JuMP.@constraint(pm.model, delta_hotspot == delta_hotspot_ss + oil_temp) 
+    JuMP.@constraint(pm.model, delta_hotspot == delta_hotspot_ss) 
+end
+
+
+function constraint_absolute_hotspot_temperature(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, temp_ambient)
+    delta_hotspot = PMs.var(pm, n, c, :hs, i) 
+    hotspot = PMs.var(pm, n, c, :hsa, i)     
+    oil_temp = PMs.var(pm, n, c, :ro, i)
+    JuMP.@constraint(pm.model, hotspot == delta_hotspot + oil_temp + temp_ambient) 
 end

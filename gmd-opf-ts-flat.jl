@@ -36,6 +36,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         variable_delta_oil(pm, nw=n)
         variable_delta_hotspot_ss(pm, nw=n)
         variable_delta_hotspot(pm, nw=n)
+        variable_hotspot(pm, nw=n)
 
         PMs.constraint_model_voltage(pm, nw=n)
 
@@ -59,10 +60,10 @@ function post_gic_opf_ts(pm::GenericPowerModel)
             PMs.constraint_thermal_limit_from(pm, i, nw=n)
             PMs.constraint_thermal_limit_to(pm, i, nw=n)
 
-            constraint_temperature_rise_ss(pm, i, nw=n) 
             constraint_temperature_state_ss(pm, i, nw=n) 
             constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
             constraint_hotspot_temperature_state(pm, i, nw=n)                         
+            constraint_absolute_hotspot_temperature_state(pm, i, nw=n)            
         end
 
         ### DC network constraints ###

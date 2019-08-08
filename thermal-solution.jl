@@ -10,28 +10,31 @@ function get_gmd_ts_solution(pm::PMs.GenericPowerModel, sol::Dict{String,Any})
     PowerModelsGMD.add_setpoint_branch_dc_flow!(sol, pm)
     PowerModelsGMD.add_setpoint_bus_qloss!(sol, pm)
 
-    add_setpoint_temperature_steady_state!(sol, pm)
-    add_setpoint_temperature!(sol, pm)
-    add_setpoint_hotspot_temperature_steady_state!(sol, pm)
+    add_setpoint_top_oil_rise_steady_state!(sol, pm)
+    add_setpoint_top_oil_rise!(sol, pm)
+    add_setpoint_hotspot_rise_steady_state!(sol, pm)
+    add_setpoint_hotspot_rise!(sol, pm)
     add_setpoint_hotspot_temperature!(sol, pm)
+
 end
 
-function add_setpoint_temperature_rise_steady_state!(sol, pm::PMs.GenericPowerModel)
-    PMs.add_setpoint!(sol, pm, "branch", "topoilrise_ss", :ross, status_name="br_status")
+function add_setpoint_top_oil_rise_steady_state!(sol, pm::PMs.GenericPowerModel)
+    PMs.add_setpoint!(sol, pm, "branch", "topoil_rise_ss", :ross, status_name="br_status")
 end
 
-function add_setpoint_temperature_steady_state!(sol, pm::PMs.GenericPowerModel)
-    PMs.add_setpoint!(sol, pm, "branch", "topoil_ss", :oss, status_name="br_status")
+
+function add_setpoint_top_oil_rise!(sol, pm::PMs.GenericPowerModel)
+    PMs.add_setpoint!(sol, pm, "branch", "topoil_rise", :ro, status_name="br_status")
 end
 
-function add_setpoint_temperature!(sol, pm::PMs.GenericPowerModel)
-    PMs.add_setpoint!(sol, pm, "branch", "topoil", :ro, status_name="br_status")
+function add_setpoint_hotspot_rise_steady_state!(sol, pm::PMs.GenericPowerModel)
+    PMs.add_setpoint!(sol, pm, "branch", "hotspot_rise_ss", :hsss, status_name="br_status")
 end
 
-function add_setpoint_hotspot_temperature_steady_state!(sol, pm::PMs.GenericPowerModel)
-    PMs.add_setpoint!(sol, pm, "branch", "hotspot_ss", :hsss, status_name="br_status")
+function add_setpoint_hotspot_rise!(sol, pm::PMs.GenericPowerModel)
+    PMs.add_setpoint!(sol, pm, "branch", "hotspot_rise", :hs, status_name="br_status")
 end
 
 function add_setpoint_hotspot_temperature!(sol, pm::PMs.GenericPowerModel)
-    PMs.add_setpoint!(sol, pm, "branch", "hotspot", :hs, status_name="br_status")
+    PMs.add_setpoint!(sol, pm, "branch", "hotspot", :hsa, status_name="br_status")
 end

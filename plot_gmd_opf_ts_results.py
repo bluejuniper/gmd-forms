@@ -30,9 +30,9 @@ def timeseries(output, table, row, field):
         
     return values
 
-doss = timeseries(output, 'branch', '1', 'topoil_ss')
-do = timeseries(output, 'branch', '1', 'topoil')
-dhsss = timeseries(output, 'branch', '1', 'hotspot_ss')
+doss = timeseries(output, 'branch', '1', 'topoil_rise_ss')
+do = timeseries(output, 'branch', '1', 'topoil_rise')
+dhsss = timeseries(output, 'branch', '1', 'hotspot_rise_ss')
 dhs = timeseries(output, 'branch', '1', 'hotspot')
 p = timeseries(output, 'branch', '1', 'pf')
 q = timeseries(output, 'branch', '1', 'qf')

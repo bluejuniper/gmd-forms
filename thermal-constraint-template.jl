@@ -4,7 +4,7 @@ include("thermal-constraint.jl")
 
 # really should move these parameters into the model, this is rather clunky
 ""
-function constraint_temperature_rise_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
+function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
     #temperature = ref(pm, nw, :storage, i)
 
     branch = PMs.ref(pm, nw, :branch, i)
@@ -23,7 +23,7 @@ end
 
 
 ""
-function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
+function constraint_absolute_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
     #temperature = ref(pm, nw, :storage, i)
 
     branch = PMs.ref(pm, nw, :branch, i)
@@ -36,7 +36,7 @@ function constraint_temperature_state_ss(pm::GenericPowerModel, i::Int; nw::Int=
         f_idx = (i, f_bus, t_bus)
         cnd = 1 # only support positive sequence for now
 
-        constraint_temperature_rise_steady_state(pm, nw, i, f_idx, cnd, rate_a, branch["temperature_ambient"])
+        constraint_temperature_absolute_steady_state(pm, nw, i, f_idx, cnd, rate_a, branch["temperature_ambient"])
     end
 end
 
@@ -115,5 +115,19 @@ function constraint_hotspot_temperature_state(pm::GenericPowerModel, i::Int; nw:
 
     if branch["topoil_time_const"] >= 0
         constraint_hotspot_temperature(pm, nw, i, f_idx, cnd)
+    end
+end
+
+
+""
+function constraint_absolute_hotspot_temperature_state(pm::GenericPowerModel, i::Int; nw::Int=pm.cnw)
+    branch = ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    cnd = 1 # only support positive sequence for now
+
+    if branch["topoil_time_const"] >= 0
+        constraint_absolute_hotspot_temperature(pm, nw, i, f_idx, cnd, branch["temperature_ambient"])
     end
 end
