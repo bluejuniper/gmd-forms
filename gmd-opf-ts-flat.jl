@@ -32,7 +32,6 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PowerModelsGMD.variable_dc_line_flow(pm, nw=n)
 
         variable_delta_oil_ss(pm, nw=n)
-        variable_oil_ss(pm, nw=n)
         variable_delta_oil(pm, nw=n)
         variable_delta_hotspot_ss(pm, nw=n)
         variable_delta_hotspot(pm, nw=n)
