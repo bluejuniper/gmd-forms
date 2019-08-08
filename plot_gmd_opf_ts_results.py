@@ -23,6 +23,9 @@ with open('data/B4GIC_gmd_opf_ts_decoupled.json') as io:
 do1 = []
 do2 = []
 
+dhs1 = []
+dhs2 = []
+
 do1d = []
 do2d = []
 
@@ -38,6 +41,10 @@ for i in range(len(output['result']['solution']['nw'])):
     dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise']
     do2.append(dK)    
 
+    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_hotspotrise']
+    dhs1.append(dK)
+    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_hotspotrise']
+    dhs2.append(dK)
 
     pf1 = output['result']['solution']['nw'][str(i+1)]['branch']['1']['pf']
     qf1 = output['result']['solution']['nw'][str(i+1)]['branch']['1']['qf']
@@ -53,8 +60,6 @@ for i in range(len(t)):
     # do1.append(dK)
     # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise_ss']
     # do2.append(dK)    
-
-
 
     dK = decoupled_output['result'][i]['temperatures']['delta_topoilrise_ss'][0]
     do1d.append(dK)
@@ -75,10 +80,13 @@ for i in range(len(t)):
 
 plt.subplot(1,2,1)
 plt.plot(tc,do1,'.-',tc,do2,'.-')
-plt.title('Coupled')
+plt.title('Coupled Top-oil')
 plt.legend(['XF1','XF3'])
 
 plt.subplot(1,2,2)
+plt.plot(tc,dhs1,'.-',tc,dhs2,'.-')
+plt.title('Coupled Hotspot')
+plt.legend(['XF1','XF3'])
 # plt.plot(t,do1d,'.-',t,do2d,'.-')
 # plt.legend(['XF1','XF3'])
 # plt.title('Decoupled')
