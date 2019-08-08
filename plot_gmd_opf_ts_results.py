@@ -20,73 +20,55 @@ with open('data/B4GIC_gmd_opf_ts_decoupled.json') as io:
     decoupled_output = json.load(io)
 
 
-do1 = []
-do2 = []
 
-dhs1 = []
-dhs2 = []
 
-do1d = []
-do2d = []
+def timeseries(output, table, row, field):
+    values = []
+    for i in range(len(output['result']['solution']['nw'])):
+        x = output['result']['solution']['nw'][str(i+1)][table][row][field]
+        values.append(x)
+        
+    return values
 
-# import ipdb; ipdb.set_trace()
-p = []
-q = []
-pd = []
-qd = []
+do = timeseries(output, 'branch', '1', 'delta_topoilrise')
+dhs = timeseries(output, 'branch', '1', 'delta_hotspotrise_ss')
+p = timeseries(output, 'branch', '1', 'pf')
+q = timeseries(output, 'branch', '1', 'qf')
 
-for i in range(len(output['result']['solution']['nw'])):
-    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise']
-    do1.append(dK)
-    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise']
-    do2.append(dK)    
-
-    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_hotspotrise']
-    dhs1.append(dK)
-    dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_hotspotrise']
-    dhs2.append(dK)
-
-    pf1 = output['result']['solution']['nw'][str(i+1)]['branch']['1']['pf']
-    qf1 = output['result']['solution']['nw'][str(i+1)]['branch']['1']['qf']
-    p.append(pf1)
-    q.append(qf1)
     
 n = len(p)
 dt = 5
 tc = np.linspace(0, dt*n, n)
 
-for i in range(len(t)):
-    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise_ss']
-    # do1.append(dK)
-    # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise_ss']
-    # do2.append(dK)    
+# for i in range(len(t)):
+#     # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['1']['delta_topoilrise_ss']
+#     # do1.append(dK)
+#     # dK = output['result']['solution']['nw'][f'{i+1}']['branch']['3']['delta_topoilrise_ss']
+#     # do2.append(dK)    
 
-    dK = decoupled_output['result'][i]['temperatures']['delta_topoilrise_ss'][0]
-    do1d.append(dK)
-    dK = decoupled_output['result'][i]['temperatures']['delta_topoilrise_ss'][1]
-    do2d.append(dK)    
+#     dK = decoupled_output['result'][i]['temperatures']['delta_topoilrise_ss'][0]
+#     do1d.append(dK)
+#     dK = decoupled_output['result'][i]['temperatures']['delta_topoilrise_ss'][1]
+#     do2d.append(dK)    
 
-    pf1 = decoupled_output['result'][i]['ac']['result']['solution']['branch']['1']['pf']
-    qf1 = decoupled_output['result'][i]['ac']['result']['solution']['branch']['1']['qf']
-    ratea = decoupled_output['case']['branch']['1']['rate_a']
+#     pf1 = decoupled_output['result'][i]['ac']['result']['solution']['branch']['1']['pf']
+#     qf1 = decoupled_output['result'][i]['ac']['result']['solution']['branch']['1']['qf']
+#     ratea = decoupled_output['case']['branch']['1']['rate_a']
 
-    pd.append(pf1)
-    qd.append(qf1)
+#     pd.append(pf1)
+#     qd.append(qf1)
 
     # print(f'p, q = {pf1:0.2f}, {qf1:0.2f}, rate_a = {ratea}')
 
 ### Temperatures ###
 # import ipdb; ipdb.set_trace()
 
-plt.subplot(1,2,1)
-plt.plot(tc,do1,'.-',tc,do2,'.-')
-plt.title('Coupled Top-oil')
-plt.legend(['XF1','XF3'])
 
-plt.subplot(1,2,2)
-plt.plot(tc,dhs1,'.-',tc,dhs2,'.-')
-plt.title('Coupled Hotspot')
-plt.legend(['XF1','XF3'])
+plt.plot(tc,do,'.-',tc,dhs,'.-')
+plt.title('Temperatures')
+plt.legend(['Top-oil', 'Hotspot'])
+
+
 # plt.plot(t,do1d,'.-',t,do2d,'.-')
 # plt.legend(['XF1','XF3'])
 # plt.title('Decoupled')
