@@ -20,7 +20,7 @@ function post_gic_opf_flat{T}(pm::GenericPowerModel{T}; kwargs...)
     PowerModels.variable_branch_flow(pm)
     PowerModelsGMD.variable_dc_line_flow(pm)
 
-    PowerModelsGMD.objective_gic_min_fuel(pm)
+    PowerModelsGMD.objective_gmd_min_fuel(pm)
 
     PowerModels.constraint_voltage(pm)
 

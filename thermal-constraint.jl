@@ -4,16 +4,6 @@ using JuMP, PowerModels
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal
 function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)
-
-    # S = sqrt(bs["pf"]^2 + bs["qf"]^2)
-    # K = S/(branch["rate_a"] * base_mva) #calculate the loading
-
-    # # println("S: $S \nSmax: $(branch["rate_a"]) \n")
-
-    # # Assumptions: no-load, transformer losses are very small 
-    # # 75 = top oil temp rise at rated power
-    # # 25 = ambient temperature
-
     # return delta_oil_rated*K^2
     println("Branch $i rating: $rate_a, TO rise: $delta_oil_rated")
 
@@ -22,12 +12,24 @@ function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::I
     delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
     # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
     # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
-    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
-
-    
-    #...old
-    #delta_oil_ss = var(pm, n, :ross, i) 
+    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
+    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
 end
+
+function constraint_temperature_absolute_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, temp_ambient)
+    # return delta_oil_rated*K^2
+    println("Branch $i rating: $rate_a, Ambient temp: $temp_ambient")
+
+    p_fr = PMs.var(pm, n, c, :p, fi) # real power
+    q_fr = PMs.var(pm, n, c, :q, fi) # reactive power
+    delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
+    oil_ss = PMs.var(pm, n, c, :rossa, i) # top-oil temperature rise
+
+    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
+    # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
+    JuMP.@constraint(pm.model, oil_ss == delta_oil_ss + temp_ambient)
+end
+
 
 
 # i is index of the (transformer) branch
@@ -53,72 +55,33 @@ function constraint_temperature_state(pm::GenericPowerModel, n_1::Int, n_2::Int,
    @constraint(pm.model, (1 + tau)*delta_oil == delta_oil_ss + delta_oil_ss_prev - (1 - tau)*delta_oil_prev)
 end
 
-#   
-#
-#""
-# tau_oil = 71 mins
-#function top_oil_rise(branch, result; tau_oil=4260, Delta_t=10)
-#    delta_oil_ss = ss_top_oil_rise(branch, result)
-#    delta_oil = delta_oil_ss # if we are at 1st iteration then assume starts from steady-state
-#
-#    if ("delta_oil" in keys(branch) && "delta_oil_ss" in keys(branch))
-#        println("Updating oil temperature")
-#        delta_oil_prev = branch["delta_oil"]
-#        delta_oil_ss_prev = branch["delta_oil_ss"] 
-#
-#
-#        # trapezoidal integration
-#        tau = 2*tau_oil/Delta_t
-#        delta_oil = (delta_oil_ss + delta_oil_ss_prev)/(1 + tau) - delta_oil_prev*(1 - tau)/(1 + tau)
-#    else
-#        println("Setting initial oil temperature")
-#    end
-#
-#   branch["delta_oil_ss"] = delta_oil_ss 
-#   branch["delta_oil"] = delta_oil
-#end
-#
-#""
-#function update_top_oil_rise(branch, net)
-#    k = "$(branch["index"])"
-#    # update top-oil rise for the network
-#    net["branch"][k]["delta_oil"] = branch["delta_oil"]
-#    net["branch"][k]["delta_oil_ss"] = branch["delta_oil_ss"]
-#end
+function constraint_hotspot_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, Re)
+    # return delta_oil_rated*K^2
+    # println("Branch $i rating: $rate_a, TO rise: $delta_oil_rated")
 
-#""
-#function ss_top_oil_rise(branch, result; delta_rated=75)
-#    if !branch["transformer"]
-#        return 0
-#    end
-#        
-#    i = branch["index"]
-#    bs = result["solution"]["branch"]["$i"]
-#    S = sqrt(bs["pf"]^2 + bs["qf"]^2)
-#    K = S/branch["rate_a"] # calculate the loading
-#
-#    @printf "S: %0.3f, Smax: %0.3f\n" S branch["rate_a"]
-#    # this assumes that no-load transformer losses are very small
-#    # 75 = top oil temp rise at rated power
-#    # 30 = ambient temperature
-#    return delta_rated*K^2
-#end
+    ieff = PMs.var(pm, n, c, :i_dc_mag)[i]
+    delta_hotspot_ss = PMs.var(pm, n, c, :hsss, i) # top-oil temperature rise
+    JuMP.@constraint(pm.model, delta_hotspot_ss == Re*ieff)
+end
 
 
+function constraint_hotspot_temperature(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int)
+    delta_hotspot_ss = PMs.var(pm, n, c, :hsss, i) 
+    delta_hotspot = PMs.var(pm, n, c, :hs, i) 
+    oil_temp = PMs.var(pm, n, c, :ro, i)
+    JuMP.@constraint(pm.model, delta_hotspot == delta_hotspot_ss) 
+end
 
-#
-#function constraint_temperature_complementarity(pm::genericpowermodel, n::int, i)
-#    sc = var(pm, n, :sc, i)
-#    sd = var(pm, n, :sd, i)
-#    @constraint(pm.model, sc*sd == 0.0)
-#end
-#
-#function constraint_temperature_loss(pm::genericpowermodel, n::int, i, bus, r, x, standby_loss)
-#    vm = var(pm, n, pm.ccnd, :vm, bus)
-#    ps = var(pm, n, pm.ccnd, :ps, i)
-#    qs = var(pm, n, pm.ccnd, :qs, i)
-#    sc = var(pm, n, :sc, i)
-#    sd = var(pm, n, :sd, i)
-#    @nlconstraint(pm.model, ps + (sd - sc) == standby_loss + r*(ps^2 + qs^2)/vm^2)
-#end
 
+function constraint_absolute_hotspot_temperature(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, temp_ambient)
+    delta_hotspot = PMs.var(pm, n, c, :hs, i) 
+    hotspot = PMs.var(pm, n, c, :hsa, i)     
+    oil_temp = PMs.var(pm, n, c, :ro, i)
+    JuMP.@constraint(pm.model, hotspot == delta_hotspot + oil_temp + temp_ambient) 
+end
+
+
+function constraint_avg_absolute_hotspot_temperature(pm::GenericPowerModel, i::Int, fi, c::Int, max_temp)
+    N = length(PMs.nws(pm))
+    JuMP.@constraint(pm.model, sum(PMs.var(pm, n, c, :hsa, i) for (n, nw_ref) in PMs.nws(pm)) <= N*max_temp)
+end
