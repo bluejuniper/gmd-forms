@@ -12,7 +12,8 @@ function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::I
     delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
     # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
     # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
-    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
+    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
+    JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
 end
 
 function constraint_temperature_absolute_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, temp_ambient)
@@ -77,4 +78,10 @@ function constraint_absolute_hotspot_temperature(pm::GenericPowerModel, n::Int, 
     hotspot = PMs.var(pm, n, c, :hsa, i)     
     oil_temp = PMs.var(pm, n, c, :ro, i)
     JuMP.@constraint(pm.model, hotspot == delta_hotspot + oil_temp + temp_ambient) 
+end
+
+
+function constraint_avg_absolute_hotspot_temperature(pm::GenericPowerModel, i::Int, fi, c::Int, max_temp)
+    N = length(PMs.nws(pm))
+    JuMP.@constraint(pm.model, sum(PMs.var(pm, n, c, :hsa, i) for (n, nw_ref) in PMs.nws(pm)) <= N*max_temp)
 end

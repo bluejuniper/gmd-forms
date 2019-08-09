@@ -131,3 +131,16 @@ function constraint_absolute_hotspot_temperature_state(pm::GenericPowerModel, i:
         constraint_absolute_hotspot_temperature(pm, nw, i, f_idx, cnd, branch["temperature_ambient"])
     end
 end
+
+
+function constraint_avg_absolute_hotspot_temperature_state(pm::GenericPowerModel, i::Int)
+    branch = ref(pm, 1, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    cnd = 1 # only support positive sequence for now
+
+    if branch["topoil_time_const"] >= 0
+        constraint_avg_absolute_hotspot_temperature(pm, i, f_idx, cnd, branch["hotspot_avg_limit"])
+    end
+end

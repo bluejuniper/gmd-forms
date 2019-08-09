@@ -22,7 +22,7 @@ function variable_absolute_oil_ss(pm::GenericPowerModel; nw::Int=pm.cnw, cnd::In
     if bounded
         PMs.var(pm, nw, cnd)[:rossa] = JuMP.@variable(pm.model, 
             [i in PowerModels.ids(pm, nw, :branch)], base_name="$(nw)_$(cnd)_oil_ss",
-            lower_bound = 0,
+            lower_bound = -277,
             upper_bound = 200,
             start = PowerModels.comp_start_value(PMs.ref(pm, nw, :branch, i), "oil_ss_start", cnd)
         )
@@ -89,8 +89,8 @@ function variable_hotspot(pm::GenericPowerModel; nw::Int=pm.cnw, cnd::Int=pm.ccn
     if bounded
         PMs.var(pm, nw, cnd)[:hsa] = JuMP.@variable(pm.model, 
             [i in PowerModels.ids(pm, nw, :branch)], base_name="$(nw)_$(cnd)_hotspot",
-            lower_bound = 0,
-            upper_bound = 200,
+            lower_bound = -277,
+            upper_bound = PMs.ref(pm, nw, :branch, i, "hotspot_instant_limit"),
             start = PowerModels.comp_start_value(PMs.ref(pm, nw, :branch, i), "hotspot_start", cnd)
         )
     else
