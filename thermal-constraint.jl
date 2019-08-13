@@ -16,21 +16,6 @@ function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::I
     JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
 end
 
-function constraint_temperature_absolute_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, temp_ambient)
-    # return delta_oil_rated*K^2
-    println("Branch $i rating: $rate_a, Ambient temp: $temp_ambient")
-
-    p_fr = PMs.var(pm, n, c, :p, fi) # real power
-    q_fr = PMs.var(pm, n, c, :q, fi) # reactive power
-    delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
-    oil_ss = PMs.var(pm, n, c, :rossa, i) # top-oil temperature rise
-
-    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
-    # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
-    JuMP.@constraint(pm.model, oil_ss == delta_oil_ss + temp_ambient)
-end
-
-
 
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal
