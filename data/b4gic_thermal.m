@@ -61,6 +61,14 @@ mpc.branch_gmd = {
 	2	4	3	-1	1.793	-1	-1	100	'xf'	'gwye-delta'	25	280	240	71	75	0	1	0.63
 };
 
+
+%column_names%  transformer
+mpc.branch_thermal = {
+	1	25	280 .. 
+	0	25	-1 ..
+	1	25	280 ..
+}
+
 %column_names%  lat lon
 mpc.bus_gmd = {
 	40	-89	
@@ -68,6 +76,10 @@ mpc.bus_gmd = {
 	40	-89	
 	40	-87	
 };
+
+mpc.branch_sourceids = {
+	["branch" 1 2 "2 "]
+}
 
 % minutes
 mpc.time_elapsed = 5.0
