@@ -8,7 +8,3 @@ setting = Dict{AbstractString,Any}("output" => Dict{AbstractString,Any}("line_fl
 result = run_ac_gmd(net, ipopt_solver; setting=setting)
 
  
-
-
-
-
