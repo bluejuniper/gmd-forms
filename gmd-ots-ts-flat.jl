@@ -21,15 +21,24 @@ end
 # FUNCTION: problem formulation
 function post_gic_opf_ts(pm::GenericPowerModel)
     for (n, network) in nws(pm)
-        PMs.variable_voltage(pm, nw=n) 
+        PMs.variable_voltage_on_off(pm, nw=n) # theta_i and V_i, includes constraint 3o
         PMs.variable_generation(pm, nw=n) 
         PMs.variable_branch_flow(pm, nw=n) 
         PMs.variable_dcline_flow(pm, nw=n) 
+        PMs.variable_branch_indicator(pm, nw=n) # z_e variable
 
-        PowerModelsGMD.variable_dc_voltage(pm, nw=n)
         PowerModelsGMD.variable_dc_current_mag(pm, nw=n)
-        PowerModelsGMD.variable_qloss(pm, nw=n)
-        PowerModelsGMD.variable_dc_line_flow(pm, nw=n)
+        # PowerModelsGMD.variable_qloss(pm, nw=n)
+        PowerModelsGMD.variable_dc_current(pm, nw=n)
+        PowerModelsGMD.variable_dc_line_flow(pm; bounded=false, nw=n)
+        PowerModelsGMD.variable_dc_voltage_on_off(pm, nw=n)
+        # What is this???
+    	PowerModelsGMD.variable_reactive_loss(pm) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
+
+		PowerModelsGMD.variable_active_generation_sqr_cost(pm, nw=n)
+        PowerModelsGMD.variable_load(pm, nw=n) # l_i^p, l_i^q
+        PowerModelsGMD.variable_ac_current_on_off(pm, nw=n)  # \tilde I^a_e and l_e
+        PowerModelsGMD.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         variable_delta_oil_ss(pm, nw=n)
         variable_delta_oil(pm, nw=n)
