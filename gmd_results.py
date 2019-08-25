@@ -22,14 +22,16 @@ os.getcwd()
 with open("data/epri21_ots.json") as h:
     output = json.load(h); 
 
-
+result = output['result']
 # In[24]:
 
 
-def merge_results(output):
+def merge_results(output, table_names=None):
     net = output['case']
     soln = output['result']['solution']
-    table_names = 'bus branch gen dcline storage shunt load gmd_bus gmd_branch'.split()
+    
+    if table_names is None:
+        table_names = 'bus branch gen dcline storage shunt load gmd_bus gmd_branch'.split()
     
     for tname in table_names:
         # print(f'Table {tname}')
@@ -41,32 +43,39 @@ def merge_results(output):
             soln_obj = soln[tname][oid]
             
             for fieldname, val in soln_obj.items():
-                obj[fieldname] = val
+                if fieldname in obj:
+                    soln_fieldname = fieldname + '_soln'
+                    obj[soln_fieldname] = val
+                else:
+                    obj[fieldname] = val
         
     return net
 
 
 # In[ ]:
 
-
-net = merge_results(output)
+tnames = 'bus branch gen dcline storage shunt load gmd_bus gmd_branch'.split()
+merge_results(output, table_names=tnames)
 
 
 # In[23]:
 
+tables = {}
+for tname in tnames:
+    tables[tname] = pd.DataFrame(list(output['case'][tname].values()))
 
-buses = pd.DataFrame(list(net['bus'].values()))
-branches = pd.DataFrame(list(net['branch'].values()))
-gens = pd.DataFrame(list(net['gen'].values()))
-loads = pd.DataFrame(list(net['load'].values()))
-gmd_buses = pd.DataFrame(list(net['gmd_bus'].values()))
-gmd_branches = pd.DataFrame(list(net['gmd_branch'].values()))
 
+buses = tables['bus']
+branches = tables['branch']
+gens = tables['gen']
+loads = tables['load']
+gmd_buses = tables['gmd_bus']
+gmd_branches = tables['gmd_branch']
 
 # In[25]:
 
 
-buses
+
 
 
 # In[ ]:

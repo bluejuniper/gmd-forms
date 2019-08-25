@@ -1,4 +1,4 @@
-using PowerModels, PowerModelsGMD, Ipopt, JuMP, JSON, Plots, Memento
+using PowerModels, PowerModelsGMD, Ipopt, Cbc, Juniper, JuMP, JSON, Plots, Memento
 #CSV, DataFrames
 
 const _LOGGER = Memento.getlogger(@__MODULE__)
@@ -15,7 +15,9 @@ include("thermal-objective.jl")
 
 # FUNCTION: convinience function
 function run_gic_opf_ts(file, model_constructor, solver; kwargs...)
+    # return run_model(file, model_constructor, solver, post_gic_opf_ts; ref_extensions=[PMs.ref_add_on_off_va_bounds!], solution_builder = get_gmd_ts_solution, multinetwork=true, kwargs...)
     return run_model(file, model_constructor, solver, post_gic_opf_ts; solution_builder = get_gmd_ts_solution, multinetwork=true, kwargs...)
+
 end
 
 
@@ -47,27 +49,27 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
-        variable_delta_oil_ss(pm, nw=n)
-        variable_delta_oil(pm, nw=n)
-        variable_delta_hotspot_ss(pm, nw=n)
-        variable_delta_hotspot(pm, nw=n)
-        variable_hotspot(pm, nw=n)
+        # variable_delta_oil_ss(pm, nw=n)
+        # variable_delta_oil(pm, nw=n)
+        # variable_delta_hotspot_ss(pm, nw=n)
+        # variable_delta_hotspot(pm, nw=n)
+        # variable_hotspot(pm, nw=n)
 
-        PMs.constraint_model_voltage_on_off(pm, nw=n)
+        # PMs.constraint_model_voltage_on_off(pm, nw=n)
 
-        for i in PMs.ids(pm, :ref_buses, nw=n)
-            PMs.constraint_theta_ref(pm, i, nw=n)
-        end
+        # for i in PMs.ids(pm, :ref_buses, nw=n)
+        #     PMs.constraint_theta_ref(pm, i, nw=n)
+        # end
 
-        for i in PMs.ids(pm, :bus, nw=n)
-            PG.constraint_kcl_shunt_gmd_ls(pm, i, nw=n)
-        end
+        # for i in PMs.ids(pm, :bus, nw=n)
+        #     PG.constraint_kcl_shunt_gmd_ls(pm, i, nw=n)
+        # end
 
-	    for i in PMs.ids(pm, :gen)
-	        PG.constraint_gen_on_off(pm, i, nw=n) # variation of 3q, 3r
-	        PG.constraint_gen_ots_on_off(pm, i, nw=n)
-	        PG.constraint_gen_perspective(pm, i, nw=n)
-	    end
+	    # for i in PMs.ids(pm, :gen)
+	    #     PG.constraint_gen_on_off(pm, i, nw=n) # variation of 3q, 3r
+	    #     PG.constraint_gen_ots_on_off(pm, i, nw=n)
+	    #     PG.constraint_gen_perspective(pm, i, nw=n)
+	    # end
 
         for i in PMs.ids(pm, :branch, nw=n)
             PG.constraint_dc_current_mag(pm, i, nw=n)
@@ -76,56 +78,57 @@ function post_gic_opf_ts(pm::GenericPowerModel)
             PG.constraint_qloss_vnom(pm, i, nw=n)
             PG.constraint_current_on_off(pm, i, nw=n)
 
-            PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
-            PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
+            # PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
+            # PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
 
-            PMs.constraint_voltage_angle_difference_on_off(pm, i, nw=n)
+            # PMs.constraint_voltage_angle_difference_on_off(pm, i, nw=n)
 
-            PMs.constraint_thermal_limit_from_on_off(pm, i, nw=n)
-            PMs.constraint_thermal_limit_to_on_off(pm, i, nw=n)
+            # PMs.constraint_thermal_limit_from_on_off(pm, i, nw=n)
+            # PMs.constraint_thermal_limit_to_on_off(pm, i, nw=n)
 
-            constraint_temperature_state_ss(pm, i, nw=n) 
-            constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
-            constraint_hotspot_temperature_state(pm, i, nw=n)                         
-            constraint_absolute_hotspot_temperature_state(pm, i, nw=n)            
+            # constraint_temperature_state_ss(pm, i, nw=n) 
+            # constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
+            # constraint_hotspot_temperature_state(pm, i, nw=n)                         
+            # constraint_absolute_hotspot_temperature_state(pm, i, nw=n)            
         end
 
         ### DC network constraints ###
-        for i in PMs.ids(pm, :gmd_bus)
-            PG.constraint_dc_kcl_shunt(pm, i, nw=n)
-        end
+        # for i in PMs.ids(pm, :gmd_bus)
+        #     PG.constraint_dc_kcl_shunt(pm, i, nw=n)
+        # end
 
-        for i in PMs.ids(pm, :gmd_branch)
-            PG.constraint_dc_ohms_on_off(pm, i, nw=n)
-        end
+        # for i in PMs.ids(pm, :gmd_branch)
+        #     PG.constraint_dc_ohms_on_off(pm, i, nw=n)
+        # end
 
-        for i in PMs.ids(pm, :dcline, nw=n)
-            PMs.constraint_dcline(pm, i, nw=n)
-        end
+        # for i in PMs.ids(pm, :dcline, nw=n)
+        #     PMs.constraint_dcline(pm, i, nw=n)
+        # end
     end
 
-    for i in PMs.ids(pm, :branch, nw=1)
-    	constraint_avg_absolute_hotspot_temperature_state(pm, i)
-    end
+    # for i in PMs.ids(pm, :branch, nw=1)
+    # 	constraint_avg_absolute_hotspot_temperature_state(pm, i)
+    # end
 
-    network_ids = sort(collect(nw_ids(pm)))
+    # network_ids = sort(collect(nw_ids(pm)))
 
-    n_1 = network_ids[1]
-    for i in ids(pm, :branch, nw=n_1)
-        constraint_temperature_state(pm, i, nw=n_1)
-    end
+    # n_1 = network_ids[1]
+    # for i in ids(pm, :branch, nw=n_1)
+    #     constraint_temperature_state(pm, i, nw=n_1)
+    # end
 
-    for n_2 in network_ids[2:end]
-        for i in ids(pm, :branch, nw=n_2)
-            constraint_temperature_state(pm, i, n_1, n_2)
-        end
-        n_1 = n_2
-    end
+    # for n_2 in network_ids[2:end]
+    #     for i in ids(pm, :branch, nw=n_2)
+    #         constraint_temperature_state(pm, i, n_1, n_2)
+    #     end
+    #     n_1 = n_2
+    # end
 
+    # need to add multinetwork objective
+    # PG.objective_gmd_min_ls_on_off(pm) # variation of equation 3a
+
+    PG.objective_gmd_min_fuel(pm)
     # objective_gmd_min_transformer_heating(pm)
-    PG.objective_gmd_min_ls_on_off(pm) # variation of equation 3a
-
-    # PG.objective_gmd_min_fuel(pm)
 end
 
 println("")
@@ -161,7 +164,9 @@ delta_t = raw_net["time_elapsed"]
 waveforms = wf_data["waveforms"]
 
 # Running model
-solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+cbc_solver = JuMP.with_optimizer(Cbc.Optimizer, logLevel=0)
+juniper_solver = JuMP.with_optimizer(Juniper.Optimizer, nl_solver=ipopt_solver, mip_solver=cbc_solver, log_levels=[])
 setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
 
 results = []
@@ -178,7 +183,7 @@ mod_net["gmd_branch"]["2"]["br_v"] = 100
 net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
-results = run_gic_opf_ts(net, PG.ACPPowerModel, solver; setting=setting)
+results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 
 termination_status = results["termination_status"]

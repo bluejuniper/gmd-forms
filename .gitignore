@@ -10,3 +10,5 @@
 *.csv
 .ipynb_checkpoints/
 export-results/
+
+*.html
