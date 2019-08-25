@@ -1,5 +1,30 @@
 using DataFrames
 
+function update_gmd_status!(net)
+    for gb in values(net["gmd_bus"])
+        i = gb["parent_index"]
+    
+        if gb["parent_type"] == "sub"
+            continue
+        end
+    
+        b = net["bus"]["$i"]
+    
+        if b["bus_type"] == 4
+            gb["status"] = 0
+        end
+    end
+    
+    for gbr in values(net["gmd_branch"])
+        i = gbr["parent_index"] 
+        br = net["branch"]["$i"]
+    
+        if br["br_status"] == 0
+            gbr["br_status"] = 0
+        end
+    end
+end
+
 function printdict(x; drop=["index","bus_i"])
     drop_set = Set(drop)
 

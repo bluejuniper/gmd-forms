@@ -3,6 +3,7 @@ using PowerModels, PowerModelsGMD, Ipopt, JuMP, JSON, Plots, Memento
 
 const _LOGGER = Memento.getlogger(@__MODULE__)
 const PMs = PowerModels
+const PG = PowerModelsGMD
 
 include("thermal-variable.jl")
 include("thermal-constraint.jl")
@@ -29,19 +30,21 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         # ac switching variables
         PMs.variable_branch_indicator(pm, nw=n) # z_e variable
 
-        PowerModelsGMD.variable_dc_current_mag(pm, nw=n)
-        # PowerModelsGMD.variable_qloss(pm, nw=n)
-        PowerModelsGMD.variable_dc_current(pm, nw=n)
-        PowerModelsGMD.variable_dc_line_flow(pm; bounded=false, nw=n)
-        PowerModelsGMD.variable_dc_voltage_on_off(pm, nw=n)
+        PG.variable_dc_current_mag(pm, nw=n)
+        # PG.variable_qloss(pm, nw=n)
+        PG.variable_dc_current(pm, nw=n)
+        PG.variable_dc_line_flow(pm; bounded=false, nw=n)
+        PG.variable_dc_voltage_on_off(pm, nw=n)
         # What is this???
-    	PowerModelsGMD.variable_reactive_loss(pm) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
+        # PG.variable_reactive_loss(pm) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
+        PG.variable_qloss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)        
+        
 
     	# GMD switching-related variables
-		PowerModelsGMD.variable_active_generation_sqr_cost(pm, nw=n)
-        PowerModelsGMD.variable_load(pm, nw=n) # l_i^p, l_i^q
-        PowerModelsGMD.variable_ac_current_on_off(pm, nw=n)  # \tilde I^a_e and l_e
-        PowerModelsGMD.variable_gen_indicator(pm, nw=n)  # z variables for the generators
+		PG.variable_active_generation_sqr_cost(pm, nw=n)
+        PG.variable_load(pm, nw=n) # l_i^p, l_i^q
+        PG.variable_ac_current_on_off(pm, nw=n)  # \tilde I^a_e and l_e
+        PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
         variable_delta_oil_ss(pm, nw=n)
@@ -57,21 +60,21 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         end
 
         for i in PMs.ids(pm, :bus, nw=n)
-            PowerModelsGMD.constraint_kcl_gmd_ls(pm, i, nw=n)
+            PG.constraint_kcl_shunt_gmd_ls(pm, i, nw=n)
         end
 
 	    for i in PMs.ids(pm, :gen)
-	        constraint_gen_on_off(pm, i, nw=n) # variation of 3q, 3r
-	        constraint_gen_ots_on_off(pm, i, nw=n)
-	        constraint_gen_perspective(pm, i, nw=n)
+	        PG.constraint_gen_on_off(pm, i, nw=n) # variation of 3q, 3r
+	        PG.constraint_gen_ots_on_off(pm, i, nw=n)
+	        PG.constraint_gen_perspective(pm, i, nw=n)
 	    end
 
         for i in PMs.ids(pm, :branch, nw=n)
-            PowerModelsGMD.constraint_dc_current_mag(pm, i, nw=n)
-            PowerModelsGMD.constraint_dc_current_mag_on_off(pm, i, nw=n)
+            PG.constraint_dc_current_mag(pm, i, nw=n)
+            PG.constraint_dc_current_mag_on_off(pm, i, nw=n)
             # OTS formulation is using constraint_qloss
-            PowerModelsGMD.constraint_qloss_vnom(pm, i, nw=n)
-            constraint_current_on_off(pm, i, nw=n)
+            PG.constraint_qloss_vnom(pm, i, nw=n)
+            PG.constraint_current_on_off(pm, i, nw=n)
 
             PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
             PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
@@ -89,11 +92,11 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
         ### DC network constraints ###
         for i in PMs.ids(pm, :gmd_bus)
-            PowerModelsGMD.constraint_dc_kcl_shunt(pm, i, nw=n)
+            PG.constraint_dc_kcl_shunt(pm, i, nw=n)
         end
 
         for i in PMs.ids(pm, :gmd_branch)
-            PowerModelsGMD.constraint_dc_ohms_on_off(pm, i, nw=n)
+            PG.constraint_dc_ohms_on_off(pm, i, nw=n)
         end
 
         for i in PMs.ids(pm, :dcline, nw=n)
@@ -120,9 +123,9 @@ function post_gic_opf_ts(pm::GenericPowerModel)
     end
 
     # objective_gmd_min_transformer_heating(pm)
-    PowerModelsGMD.objective_gmd_min_ls_on_off(pm) # variation of equation 3a
+    PG.objective_gmd_min_ls_on_off(pm) # variation of equation 3a
 
-    # PowerModelsGMD.objective_gmd_min_fuel(pm)
+    # PG.objective_gmd_min_fuel(pm)
 end
 
 println("")
@@ -175,7 +178,7 @@ mod_net["gmd_branch"]["2"]["br_v"] = 100
 net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
-results = run_gic_opf_ts(net, PowerModelsGMD.ACPPowerModel, solver; setting=setting)
+results = run_gic_opf_ts(net, PG.ACPPowerModel, solver; setting=setting)
 println("Done running model")
 
 termination_status = results["termination_status"]
