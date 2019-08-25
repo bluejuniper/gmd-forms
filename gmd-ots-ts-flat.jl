@@ -15,9 +15,8 @@ include("thermal-objective.jl")
 
 # FUNCTION: convinience function
 function run_gic_opf_ts(file, model_constructor, solver; kwargs...)
-    # return run_model(file, model_constructor, solver, post_gic_opf_ts; ref_extensions=[PMs.ref_add_on_off_va_bounds!], solution_builder = get_gmd_ts_solution, multinetwork=true, kwargs...)
-    return run_model(file, model_constructor, solver, post_gic_opf_ts; solution_builder = get_gmd_ts_solution, multinetwork=true, kwargs...)
-
+    return run_model(file, model_constructor, solver, post_gic_opf_ts; ref_extensions=[PMs.ref_add_on_off_va_bounds!], solution_builder = get_gmd_ts_solution, multinetwork=true, kwargs...)
+    # return run_model(file, model_constructor, solver, post_gic_opf_ts; solution_builder = get_gmd_ts_solution, multinetwork=true, kwargs...)
 end
 
 
@@ -49,27 +48,27 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
-        # variable_delta_oil_ss(pm, nw=n)
-        # variable_delta_oil(pm, nw=n)
-        # variable_delta_hotspot_ss(pm, nw=n)
-        # variable_delta_hotspot(pm, nw=n)
-        # variable_hotspot(pm, nw=n)
+        variable_delta_oil_ss(pm, nw=n)
+        variable_delta_oil(pm, nw=n)
+        variable_delta_hotspot_ss(pm, nw=n)
+        variable_delta_hotspot(pm, nw=n)
+        variable_hotspot(pm, nw=n)
 
-        # PMs.constraint_model_voltage_on_off(pm, nw=n)
+        PMs.constraint_model_voltage_on_off(pm, nw=n)
 
-        # for i in PMs.ids(pm, :ref_buses, nw=n)
-        #     PMs.constraint_theta_ref(pm, i, nw=n)
-        # end
+        for i in PMs.ids(pm, :ref_buses, nw=n)
+            PMs.constraint_theta_ref(pm, i, nw=n)
+        end
 
-        # for i in PMs.ids(pm, :bus, nw=n)
-        #     PG.constraint_kcl_shunt_gmd_ls(pm, i, nw=n)
-        # end
+        for i in PMs.ids(pm, :bus, nw=n)
+            PG.constraint_kcl_shunt_gmd_ls(pm, i, nw=n)
+        end
 
-	    # for i in PMs.ids(pm, :gen)
-	    #     PG.constraint_gen_on_off(pm, i, nw=n) # variation of 3q, 3r
-	    #     PG.constraint_gen_ots_on_off(pm, i, nw=n)
-	    #     PG.constraint_gen_perspective(pm, i, nw=n)
-	    # end
+	    for i in PMs.ids(pm, :gen)
+	        PG.constraint_gen_on_off(pm, i, nw=n) # variation of 3q, 3r
+	        PG.constraint_gen_ots_on_off(pm, i, nw=n)
+	        PG.constraint_gen_perspective(pm, i, nw=n)
+	    end
 
         for i in PMs.ids(pm, :branch, nw=n)
             PG.constraint_dc_current_mag(pm, i, nw=n)
@@ -78,56 +77,56 @@ function post_gic_opf_ts(pm::GenericPowerModel)
             PG.constraint_qloss_vnom(pm, i, nw=n)
             PG.constraint_current_on_off(pm, i, nw=n)
 
-            # PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
-            # PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
+            PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
+            PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
 
-            # PMs.constraint_voltage_angle_difference_on_off(pm, i, nw=n)
+            PMs.constraint_voltage_angle_difference_on_off(pm, i, nw=n)
 
-            # PMs.constraint_thermal_limit_from_on_off(pm, i, nw=n)
-            # PMs.constraint_thermal_limit_to_on_off(pm, i, nw=n)
+            PMs.constraint_thermal_limit_from_on_off(pm, i, nw=n)
+            PMs.constraint_thermal_limit_to_on_off(pm, i, nw=n)
 
-            # constraint_temperature_state_ss(pm, i, nw=n) 
-            # constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
-            # constraint_hotspot_temperature_state(pm, i, nw=n)                         
-            # constraint_absolute_hotspot_temperature_state(pm, i, nw=n)            
+            constraint_temperature_state_ss(pm, i, nw=n) 
+            constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
+            constraint_hotspot_temperature_state(pm, i, nw=n)                         
+            constraint_absolute_hotspot_temperature_state(pm, i, nw=n)            
         end
 
         ### DC network constraints ###
-        # for i in PMs.ids(pm, :gmd_bus)
-        #     PG.constraint_dc_kcl_shunt(pm, i, nw=n)
-        # end
+        for i in PMs.ids(pm, :gmd_bus)
+            PG.constraint_dc_kcl_shunt(pm, i, nw=n)
+        end
 
-        # for i in PMs.ids(pm, :gmd_branch)
-        #     PG.constraint_dc_ohms_on_off(pm, i, nw=n)
-        # end
+        for i in PMs.ids(pm, :gmd_branch)
+            PG.constraint_dc_ohms_on_off(pm, i, nw=n)
+        end
 
-        # for i in PMs.ids(pm, :dcline, nw=n)
-        #     PMs.constraint_dcline(pm, i, nw=n)
-        # end
+        for i in PMs.ids(pm, :dcline, nw=n)
+            PMs.constraint_dcline(pm, i, nw=n)
+        end
     end
 
-    # for i in PMs.ids(pm, :branch, nw=1)
-    # 	constraint_avg_absolute_hotspot_temperature_state(pm, i)
-    # end
+    for i in PMs.ids(pm, :branch, nw=1)
+    	constraint_avg_absolute_hotspot_temperature_state(pm, i)
+    end
 
-    # network_ids = sort(collect(nw_ids(pm)))
+    network_ids = sort(collect(nw_ids(pm)))
 
-    # n_1 = network_ids[1]
-    # for i in ids(pm, :branch, nw=n_1)
-    #     constraint_temperature_state(pm, i, nw=n_1)
-    # end
+    n_1 = network_ids[1]
+    for i in ids(pm, :branch, nw=n_1)
+        constraint_temperature_state(pm, i, nw=n_1)
+    end
 
-    # for n_2 in network_ids[2:end]
-    #     for i in ids(pm, :branch, nw=n_2)
-    #         constraint_temperature_state(pm, i, n_1, n_2)
-    #     end
-    #     n_1 = n_2
-    # end
+    for n_2 in network_ids[2:end]
+        for i in ids(pm, :branch, nw=n_2)
+            constraint_temperature_state(pm, i, n_1, n_2)
+        end
+        n_1 = n_2
+    end
 
-    # need to add multinetwork objective
-    # PG.objective_gmd_min_ls_on_off(pm) # variation of equation 3a
+    # this has multinetwork built-in
+    PG.objective_gmd_min_ls_on_off(pm) # variation of equation 3a
 
-    PG.objective_gmd_min_fuel(pm)
+    # PG.objective_gmd_min_fuel(pm)
     # objective_gmd_min_transformer_heating(pm)
 end
 
@@ -192,6 +191,8 @@ objective = results["objective"]
 println("Termination status $termination_status")
 println("Primal status $primal_status")
 println("Objective $objective")
+
+PowerModels.make_mixed_units!(net)
 
 output = Dict()
 output["case"] = net

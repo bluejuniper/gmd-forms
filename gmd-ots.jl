@@ -18,6 +18,8 @@ branch_setting = Dict{AbstractString,Any}("output" => Dict{AbstractString,Any}("
 # result = run_ac_gmd_ots(path, juniper_solver)
 result = run_ac_gmd_ots(net, juniper_solver)
 
+PowerModels.make_mixed_units!(net)
+
 output = Dict()
 output["file"] = path
 output["case"] = net
