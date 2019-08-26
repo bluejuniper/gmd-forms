@@ -12,7 +12,7 @@ os.getcwd()
 
 
 #%%
-with open("data/B4GIC_gmd_opf_ts.json") as h:
+with open("data/epri21_ots_gmd_opf_ts.json") as h:
     output = json.load(h); 
 
 net = output['case']
@@ -21,8 +21,8 @@ result = output['result']
 #%%
 def merge_multinetwork_results(output, table_names=None):
     networks = output['case']['nw']
-    solutions = output['result']['data']['nw']
-    times = sorted(list(networks.keys()))   
+    solutions = output['result']['solution']['nw']
+    times = sorted([int(x) for x in networks.keys()])   
     n = len(times)
     solved_networks = []
     

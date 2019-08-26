@@ -132,35 +132,21 @@ end
 
 println("")
 
-# Load waveform data
-# Not using for now
-println("Load waveform data\n")
-wf_path = "data/b4gic-gmd-wf.json"
-h = open(wf_path)
-wf_data = JSON.parse(h)
-close(h)
-
-
 
 
 # Load case data
 println("Load case data\n")
-# path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/b4gic.m")
-path = "data/b4gic_thermal.m"
+path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/epri21_ots.m")
+# path = "data/b4gic_thermal.m"
 raw_net = PMs.parse_file(path)
-raw_net["name"] = "B4GIC"
+# raw_net["name"] = "B4GIC"
 base_mva = raw_net["baseMVA"]
 println("")
 
 
-# timesteps = wf_data["time"]
-# n = length(timesteps)
-T = 60*3
-n = Int(ceil(T/raw_net["time_elapsed"]))
-t = range(0, stop=T, length=n)
+n = 4
 delta_t = raw_net["time_elapsed"]
-# not using for now
-waveforms = wf_data["waveforms"]
+T = n*delta_t
 
 # Running model
 ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
@@ -170,19 +156,26 @@ setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
 
 results = []
 
+update_gmd_status!(raw_net)
 mod_net = deepcopy(raw_net)
 
-mva_base = 100
-mod_net["load"]["1"]["pd"] = 1000/mva_base
-mod_net["load"]["1"]["qd"] = 200/mva_base
+# let's reduce the dc voltages
+for (k,gbr) in mod_net["gmd_branch"]
+    gbr["br_v"] /= 2
+end
 
-mod_net["gmd_branch"]["2"]["br_v"] = 100
+# mva_base = 100
+# mod_net["load"]["1"]["pd"] = 1000/mva_base
+# mod_net["load"]["1"]["qd"] = 200/mva_base
+
+# mod_net["gmd_branch"]["2"]["br_v"] = 100
 
 # Create replicates (multiples) of the network
 net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
-results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
+results = run_gic_opf_ts(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
+# results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 
 termination_status = results["termination_status"]
@@ -193,6 +186,7 @@ println("Primal status $primal_status")
 println("Objective $objective")
 
 PowerModels.make_mixed_units!(net)
+PowerModels.make_mixed_units!(results)
 
 output = Dict()
 output["case"] = net
