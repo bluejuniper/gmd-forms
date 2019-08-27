@@ -27,6 +27,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PMs.variable_generation(pm, nw=n) 
         PMs.variable_branch_flow(pm, nw=n) 
         PMs.variable_dcline_flow(pm, nw=n) 
+        # PMs.variable_current_magnitude_sqr(pm, nw=n)
 
         # ac switching variables
         PMs.variable_branch_indicator(pm, nw=n) # z_e variable
@@ -174,7 +175,7 @@ end
 net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
-results = run_gic_opf_ts(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
+results = run_gic_opf_ts(net, PG.QCWRPowerModel, juniper_solver; setting=setting)
 # results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 
