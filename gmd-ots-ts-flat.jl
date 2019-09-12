@@ -1,6 +1,8 @@
 using PowerModels, PowerModelsGMD, Ipopt, Cbc, Juniper, JuMP, JSON, Plots, Memento
 #CSV, DataFrames
 
+include("powermodelsio.jl")
+
 const _LOGGER = Memento.getlogger(@__MODULE__)
 const PMs = PowerModels
 const PG = PowerModelsGMD
@@ -38,7 +40,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PG.variable_dc_line_flow(pm; bounded=false, nw=n)
         PG.variable_dc_voltage_on_off(pm, nw=n)
         # What is this???
-        # PG.variable_reactive_loss(pm) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
+        # PG.variable_reactive_loss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
         PG.variable_qloss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)        
         
 
@@ -162,7 +164,7 @@ mod_net = deepcopy(raw_net)
 
 # let's reduce the dc voltages
 for (k,gbr) in mod_net["gmd_branch"]
-    gbr["br_v"] /= 2
+    gbr["br_v"] /= 100
 end
 
 # mva_base = 100
@@ -175,8 +177,8 @@ end
 net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
-results = run_gic_opf_ts(net, PG.QCWRPowerModel, juniper_solver; setting=setting)
-# results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
+# results = run_gic_opf_ts(net, PG.QCWRPowerModel, juniper_solver; setting=setting)
+results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 
 termination_status = results["termination_status"]
@@ -198,9 +200,3 @@ println("\nSaving results to $outfile")
 f = open(outfile,"w")
 JSON.print(f,output)
 close(f)    
-
-
-
-
- 
-
