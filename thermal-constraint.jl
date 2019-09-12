@@ -60,6 +60,7 @@ end
 
 function constraint_absolute_hotspot_temperature(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, temp_ambient)
     delta_hotspot = PMs.var(pm, n, c, :hs, i) 
+    #delta_hotspot = PMs.var(pm, n, c, :hsss, i) 
     hotspot = PMs.var(pm, n, c, :hsa, i)     
     oil_temp = PMs.var(pm, n, c, :ro, i)
     JuMP.@constraint(pm.model, hotspot == delta_hotspot + oil_temp + temp_ambient) 

@@ -1,4 +1,4 @@
-using PowerModels, PowerModelsGMD, Ipopt, Cbc, Juniper, JuMP, JSON, Plots, Memento
+using PowerModels, PowerModelsGMD, Ipopt, Cbc, Juniper, JuMP, JSON, Plots, Memento, HSL
 #CSV, DataFrames
 
 include("powermodelsio.jl")
@@ -51,11 +51,11 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
-        variable_delta_oil_ss(pm, nw=n)
-        variable_delta_oil(pm, nw=n)
-        variable_delta_hotspot_ss(pm, nw=n)
-        variable_delta_hotspot(pm, nw=n)
-        variable_hotspot(pm, nw=n)
+        variable_delta_oil_ss(pm, nw=n, bounded=false)
+        variable_delta_oil(pm, nw=n, bounded=false)
+        variable_delta_hotspot_ss(pm, nw=n, bounded=false)
+        variable_delta_hotspot(pm, nw=n, bounded=false)
+        variable_hotspot(pm, nw=n, bounded=false)
 
         PMs.constraint_model_voltage_on_off(pm, nw=n)
 
@@ -152,7 +152,8 @@ delta_t = raw_net["time_elapsed"]
 T = n*delta_t
 
 # Running model
-ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-3, print_level=0)
+#gurobi_solver = JuMP.with_optimizer(Gurobi.Optimizer, tol=1e-6, print_level=0)
 cbc_solver = JuMP.with_optimizer(Cbc.Optimizer, logLevel=0)
 juniper_solver = JuMP.with_optimizer(Juniper.Optimizer, nl_solver=ipopt_solver, mip_solver=cbc_solver, log_levels=[])
 setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))

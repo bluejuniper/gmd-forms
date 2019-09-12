@@ -21,21 +21,22 @@ end
 # FUNCTION: problem formulation
 function post_gic_opf_ts(pm::GenericPowerModel)
     for (n, network) in nws(pm)
-        PMs.variable_voltage(pm, nw=n) 
-        PMs.variable_generation(pm, nw=n) 
-        PMs.variable_branch_flow(pm, nw=n) 
-        PMs.variable_dcline_flow(pm, nw=n) 
+        PMs.variable_voltage(pm, nw=n)
+        PMs.variable_generation(pm, nw=n)
+        PMs.variable_branch_flow(pm, nw=n)
+        PMs.variable_dcline_flow(pm, nw=n)
 
         PowerModelsGMD.variable_dc_voltage(pm, nw=n)
         PowerModelsGMD.variable_dc_current_mag(pm, nw=n)
         PowerModelsGMD.variable_qloss(pm, nw=n)
         PowerModelsGMD.variable_dc_line_flow(pm, nw=n)
 
-        variable_delta_oil_ss(pm, nw=n)
-        variable_delta_oil(pm, nw=n)
-        variable_delta_hotspot_ss(pm, nw=n)
-        variable_delta_hotspot(pm, nw=n)
-        variable_hotspot(pm, nw=n)
+        btemp = true
+        variable_delta_oil_ss(pm, nw=n, bounded=btemp)
+        variable_delta_oil(pm, nw=n, bounded=btemp)
+        variable_delta_hotspot_ss(pm, nw=n, bounded=btemp)
+        variable_delta_hotspot(pm, nw=n, bounded=btemp)
+        variable_hotspot(pm, nw=n, bounded=btemp)
 
         PMs.constraint_model_voltage(pm, nw=n)
 
@@ -85,17 +86,17 @@ function post_gic_opf_ts(pm::GenericPowerModel)
 
     network_ids = sort(collect(nw_ids(pm)))
 
-    n_1 = network_ids[1]
-    for i in ids(pm, :branch, nw=n_1)
-        constraint_temperature_state(pm, i, nw=n_1)
-    end
+    #n_1 = network_ids[1]
+    #for i in ids(pm, :branch, nw=n_1)
+    #    constraint_temperature_state(pm, i, nw=n_1)
+    #end
 
-    for n_2 in network_ids[2:end]
-        for i in ids(pm, :branch, nw=n_2)
-            constraint_temperature_state(pm, i, n_1, n_2)
-        end
-        n_1 = n_2
-    end
+    #for n_2 in network_ids[2:end]
+    #    for i in ids(pm, :branch, nw=n_2)
+    #        constraint_temperature_state(pm, i, n_1, n_2)
+    #    end
+    #    n_1 = n_2
+    #end
 
     objective_gmd_min_transformer_heating(pm)
     # PowerModelsGMD.objective_gmd_min_fuel(pm)
@@ -116,36 +117,31 @@ close(h)
 
 # Load case data
 println("Load case data\n")
-# path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/b4gic.m")
-path = "data/b4gic_thermal.m"
+path = joinpath(dirname(pathof(PowerModelsGMD)), "../test/data/epri21_ots.m")
 raw_net = PMs.parse_file(path)
-raw_net["name"] = "B4GIC"
+#raw_net["name"] = "B4GIC"
 base_mva = raw_net["baseMVA"]
 println("")
 
-
-# timesteps = wf_data["time"]
-# n = length(timesteps)
-T = 60*3
-n = Int(ceil(T/raw_net["time_elapsed"]))
-t = range(0, stop=T, length=n)
+n = 4
 delta_t = raw_net["time_elapsed"]
-# not using for now
-waveforms = wf_data["waveforms"]
+T = n*delta_t
+
+
 
 # Running model
 solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+#solver = JuMP.with_optimizer(CPLEX.Optimizer, tol=1e-6, print_level=0)
 setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
 
 results = []
 
 mod_net = deepcopy(raw_net)
 
-mva_base = 100
-mod_net["load"]["1"]["pd"] = 1000/mva_base
-mod_net["load"]["1"]["qd"] = 200/mva_base
+for (k,gb) in mod_net["gmd_branch"]
+  gb["br_v"] /= 10
+end
 
-mod_net["gmd_branch"]["2"]["br_v"] = 100
 
 # Create replicates (multiples) of the network
 net = PMs.replicate(mod_net, n)
