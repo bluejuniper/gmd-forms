@@ -35,7 +35,6 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PMs.variable_branch_indicator(pm, nw=n) # z_e variable
 
         PG.variable_dc_current_mag(pm, nw=n)
-        # PG.variable_qloss(pm, nw=n)
         PG.variable_dc_current(pm, nw=n)
         PG.variable_dc_line_flow(pm; bounded=false, nw=n)
         PG.variable_dc_voltage_on_off(pm, nw=n)
@@ -51,11 +50,11 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
-        variable_delta_oil_ss(pm, nw=n)
-        variable_delta_oil(pm, nw=n)
-        variable_delta_hotspot_ss(pm, nw=n)
-        variable_delta_hotspot(pm, nw=n)
-        variable_hotspot(pm, nw=n)
+        variable_delta_oil_ss(pm, nw=n, bounded=false)
+        variable_delta_oil(pm, nw=n, bounded=false)
+        variable_delta_hotspot_ss(pm, nw=n, bounded=false)
+        variable_delta_hotspot(pm, nw=n, bounded=false)
+        variable_hotspot(pm, nw=n, bounded=false)
 
         PMs.constraint_model_voltage_on_off(pm, nw=n)
 
@@ -153,6 +152,7 @@ T = n*delta_t
 
 # Running model
 ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-3, print_level=0)
+#gurobi_solver = JuMP.with_optimizer(Gurobi.Optimizer, tol=1e-6, print_level=0)
 cbc_solver = JuMP.with_optimizer(Cbc.Optimizer, logLevel=0)
 juniper_solver = JuMP.with_optimizer(Juniper.Optimizer, nl_solver=ipopt_solver, mip_solver=cbc_solver, log_levels=[])
 setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
@@ -161,15 +161,12 @@ results = []
 
 update_gmd_status!(raw_net)
 mod_net = deepcopy(raw_net)
+mod_net["time_elapsed"] = 60
 
 # let's reduce the dc voltages
 for (k,gbr) in mod_net["gmd_branch"]
     gbr["br_v"] /= 100
 end
-
-# mva_base = 100
-# mod_net["load"]["1"]["pd"] = 1000/mva_base
-# mod_net["load"]["1"]["qd"] = 200/mva_base
 
 # mod_net["gmd_branch"]["2"]["br_v"] = 100
 
@@ -178,6 +175,7 @@ net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
 # results = run_gic_opf_ts(net, PG.QCWRPowerModel, juniper_solver; setting=setting)
+#results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
 results = run_gic_opf_ts(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 
