@@ -47,7 +47,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
     	# GMD switching-related variables
 		PG.variable_active_generation_sqr_cost(pm, nw=n)
         PG.variable_load(pm, nw=n) # l_i^p, l_i^q
-        PG.variable_ac_current_on_off(pm, nw=n)  # \tilde I^a_e and l_e
+        # PG.variable_ac_current_on_off(pm, nw=n)  # \tilde I^a_e and l_e
         PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
@@ -78,7 +78,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
             PG.constraint_dc_current_mag_on_off(pm, i, nw=n)
             # OTS formulation is using constraint_qloss
             PG.constraint_qloss_vnom(pm, i, nw=n)
-            PG.constraint_current_on_off(pm, i, nw=n)
+            # PG.constraint_current_on_off(pm, i, nw=n)
 
             PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
             PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
@@ -152,7 +152,7 @@ delta_t = raw_net["time_elapsed"]
 T = n*delta_t
 
 # Running model
-ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
+ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-3, print_level=0)
 cbc_solver = JuMP.with_optimizer(Cbc.Optimizer, logLevel=0)
 juniper_solver = JuMP.with_optimizer(Juniper.Optimizer, nl_solver=ipopt_solver, mip_solver=cbc_solver, log_levels=[])
 setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
@@ -178,7 +178,7 @@ net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
 # results = run_gic_opf_ts(net, PG.QCWRPowerModel, juniper_solver; setting=setting)
-results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
+results = run_gic_opf_ts(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 
 termination_status = results["termination_status"]
