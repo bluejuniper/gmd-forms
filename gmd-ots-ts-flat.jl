@@ -35,7 +35,6 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         PMs.variable_branch_indicator(pm, nw=n) # z_e variable
 
         PG.variable_dc_current_mag(pm, nw=n)
-        # PG.variable_qloss(pm, nw=n)
         PG.variable_dc_current(pm, nw=n)
         PG.variable_dc_line_flow(pm; bounded=false, nw=n)
         PG.variable_dc_voltage_on_off(pm, nw=n)
@@ -78,7 +77,7 @@ function post_gic_opf_ts(pm::GenericPowerModel)
             PG.constraint_dc_current_mag_on_off(pm, i, nw=n)
             # OTS formulation is using constraint_qloss
             PG.constraint_qloss_vnom(pm, i, nw=n)
-            PG.constraint_current_on_off(pm, i, nw=n)
+            #PG.constraint_current_on_off(pm, i, nw=n)
 
             PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
             PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
@@ -162,15 +161,12 @@ results = []
 
 update_gmd_status!(raw_net)
 mod_net = deepcopy(raw_net)
+mod_net["time_elapsed"] = 60
 
 # let's reduce the dc voltages
 for (k,gbr) in mod_net["gmd_branch"]
     gbr["br_v"] /= 100
 end
-
-# mva_base = 100
-# mod_net["load"]["1"]["pd"] = 1000/mva_base
-# mod_net["load"]["1"]["qd"] = 200/mva_base
 
 # mod_net["gmd_branch"]["2"]["br_v"] = 100
 
@@ -179,7 +175,8 @@ net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
 # results = run_gic_opf_ts(net, PG.QCWRPowerModel, juniper_solver; setting=setting)
-results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
+#results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
+results = run_gic_opf_ts(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 
 termination_status = results["termination_status"]

@@ -49,9 +49,9 @@ function constraint_temperature_state(pm::GenericPowerModel, i::Int, nw_1::Int, 
         delta_t = 5
 
         if haskey(ref(pm, nw_1), :time_elapsed)
-            delta-t = ref(pm, nw_1, :time_elapsed)
+            delta_t = ref(pm, nw_1, :time_elapsed)
         else
-            Memento.warn(_LOGGER, "network data should specify time_elapsed, using 1 as a default")
+            Memento.warn(_LOGGER, "network data should specify time_elapsed, using $delta_t as a default")
         end
         
         cnd = 1

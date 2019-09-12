@@ -80,23 +80,23 @@ function post_gic_opf_ts(pm::GenericPowerModel)
         end
     end
 
-    for i in PMs.ids(pm, :branch, nw=1)
-    	constraint_avg_absolute_hotspot_temperature_state(pm, i)
-    end
+    #for i in PMs.ids(pm, :branch, nw=1)
+    #	constraint_avg_absolute_hotspot_temperature_state(pm, i)
+    #end
 
     network_ids = sort(collect(nw_ids(pm)))
 
-    #n_1 = network_ids[1]
-    #for i in ids(pm, :branch, nw=n_1)
-    #    constraint_temperature_state(pm, i, nw=n_1)
-    #end
+    n_1 = network_ids[1]
+    for i in ids(pm, :branch, nw=n_1)
+        constraint_temperature_state(pm, i, nw=n_1)
+    end
 
-    #for n_2 in network_ids[2:end]
-    #    for i in ids(pm, :branch, nw=n_2)
-    #        constraint_temperature_state(pm, i, n_1, n_2)
-    #    end
-    #    n_1 = n_2
-    #end
+    for n_2 in network_ids[2:end]
+        for i in ids(pm, :branch, nw=n_2)
+            constraint_temperature_state(pm, i, n_1, n_2)
+        end
+        n_1 = n_2
+    end
 
     objective_gmd_min_transformer_heating(pm)
     # PowerModelsGMD.objective_gmd_min_fuel(pm)
@@ -123,12 +123,6 @@ raw_net = PMs.parse_file(path)
 base_mva = raw_net["baseMVA"]
 println("")
 
-n = 4
-delta_t = raw_net["time_elapsed"]
-T = n*delta_t
-
-
-
 # Running model
 solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-6, print_level=0)
 #solver = JuMP.with_optimizer(CPLEX.Optimizer, tol=1e-6, print_level=0)
@@ -137,6 +131,7 @@ setting = Dict{String,Any}("output" => Dict{String,Any}("branch_flows" => true))
 results = []
 
 mod_net = deepcopy(raw_net)
+mod_net["time_elapsed"] = 60
 
 for (k,gb) in mod_net["gmd_branch"]
   gb["br_v"] /= 10
@@ -147,7 +142,8 @@ end
 net = PMs.replicate(mod_net, n)
 
 println("Running model: $(raw_net["name"]) \n")
-results = run_gic_opf_ts(net, PowerModelsGMD.ACPPowerModel, solver; setting=setting)
+#results = run_gic_opf_ts(net, PowerModelsGMD.ACPPowerModel, solver; setting=setting)
+results = run_gic_opf_ts(net, PowerModelsGMD.SOCWRPowerModel, solver; setting=setting)
 println("Done running model")
 
 termination_status = results["termination_status"]
