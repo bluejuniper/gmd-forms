@@ -166,7 +166,7 @@ mod_net["time_elapsed"] = 60
 
 # let's reduce the dc voltages
 for (k,gbr) in mod_net["gmd_branch"]
-    gbr["br_v"] /= 1
+    gbr["br_v"] /= 100
     #gbr["br_v"] = 0
 end
 
