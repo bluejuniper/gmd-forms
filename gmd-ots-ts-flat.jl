@@ -48,11 +48,11 @@ function post_gic_ots_ts(pm::GenericPowerModel)
         #PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
-        #variable_delta_oil_ss(pm, nw=n, bounded=false)
-        #variable_delta_oil(pm, nw=n, bounded=false)
-        #variable_delta_hotspot_ss(pm, nw=n, bounded=false)
-        #variable_delta_hotspot(pm, nw=n, bounded=false)
-        #variable_hotspot(pm, nw=n, bounded=false)
+        variable_delta_oil_ss(pm, nw=n, bounded=false)
+        variable_delta_oil(pm, nw=n, bounded=false)
+        variable_delta_hotspot_ss(pm, nw=n, bounded=false)
+        variable_delta_hotspot(pm, nw=n, bounded=false)
+        variable_hotspot(pm, nw=n, bounded=false)
 
         PMs.constraint_model_voltage_on_off(pm, nw=n)
 
@@ -61,8 +61,9 @@ function post_gic_ots_ts(pm::GenericPowerModel)
         end
 
         for i in PMs.ids(pm, :bus, nw=n)
-            #PG.constraint_kcl_shunt_gmd_ls(pm, i, nw=n)
-          constraint_power_balance_shunt(pm, i, nw=n)
+            # need to add contraint with shunts
+            PG.constraint_kcl_gmd(pm, i, nw=n)
+            #constraint_power_balance_shunt(pm, i, nw=n)
         end
 
 	    #for i in PMs.ids(pm, :gen)
