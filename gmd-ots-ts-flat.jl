@@ -85,10 +85,10 @@ function post_gic_ots_ts(pm::GenericPowerModel)
             PMs.constraint_thermal_limit_from_on_off(pm, i, nw=n)
             PMs.constraint_thermal_limit_to_on_off(pm, i, nw=n)
 
-            #constraint_temperature_state_ss(pm, i, nw=n) 
-            #constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
-            #constraint_hotspot_temperature_state(pm, i, nw=n)                         
-            #constraint_absolute_hotspot_temperature_state(pm, i, nw=n)            
+            constraint_temperature_state_ss(pm, i, nw=n) 
+            constraint_hotspot_temperature_state_ss(pm, i, nw=n)             
+            constraint_hotspot_temperature_state(pm, i, nw=n)                         
+            constraint_absolute_hotspot_temperature_state(pm, i, nw=n)            
         end
 
         ### DC network constraints ###
