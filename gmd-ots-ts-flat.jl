@@ -38,8 +38,8 @@ function post_gic_ots_ts(pm::GenericPowerModel)
         PG.variable_dc_line_flow(pm; bounded=false, nw=n)
         PG.variable_dc_voltage_on_off(pm, nw=n)
         # What is this???
-        PG.variable_reactive_loss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
-        #PG.variable_qloss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)        
+        #PG.variable_reactive_loss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
+        PG.variable_qloss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)        
         
 
     	  # GMD switching-related variables
@@ -48,11 +48,12 @@ function post_gic_ots_ts(pm::GenericPowerModel)
         #PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
-        variable_delta_oil_ss(pm, nw=n, bounded=false)
-        variable_delta_oil(pm, nw=n, bounded=false)
-        variable_delta_hotspot_ss(pm, nw=n, bounded=false)
-        variable_delta_hotspot(pm, nw=n, bounded=false)
-        variable_hotspot(pm, nw=n, bounded=false)
+        b = true
+        variable_delta_oil_ss(pm, nw=n, bounded=b)
+        variable_delta_oil(pm, nw=n, bounded=b)
+        variable_delta_hotspot_ss(pm, nw=n, bounded=b)
+        variable_delta_hotspot(pm, nw=n, bounded=b)
+        variable_hotspot(pm, nw=n, bounded=b)
 
         PMs.constraint_model_voltage_on_off(pm, nw=n)
 
@@ -75,7 +76,7 @@ function post_gic_ots_ts(pm::GenericPowerModel)
         for i in PMs.ids(pm, :branch, nw=n)
             #PG.constraint_dc_current_mag_on_off(pm, i, nw=n)
             # OTS formulation is using constraint_qloss
-            #PG.constraint_qloss_vnom(pm, i, nw=n)
+            PG.constraint_qloss_vnom(pm, i, nw=n)
 
             PMs.constraint_ohms_yt_from_on_off(pm, i, nw=n)
             PMs.constraint_ohms_yt_to_on_off(pm, i, nw=n)
@@ -109,19 +110,19 @@ function post_gic_ots_ts(pm::GenericPowerModel)
     #	constraint_avg_absolute_hotspot_temperature_state(pm, i)
     #end
 
-    #network_ids = sort(collect(nw_ids(pm)))
+    network_ids = sort(collect(nw_ids(pm)))
 
-    #n_1 = network_ids[1]
-    #for i in ids(pm, :branch, nw=n_1)
-    #    constraint_temperature_state(pm, i, nw=n_1)
-    #end
+    n_1 = network_ids[1]
+    for i in ids(pm, :branch, nw=n_1)
+        constraint_temperature_state(pm, i, nw=n_1)
+    end
 
-    #for n_2 in network_ids[2:end]
-    #    for i in ids(pm, :branch, nw=n_2)
-    #        constraint_temperature_state(pm, i, n_1, n_2)
-    #    end
-    #    n_1 = n_2
-    #end
+    for n_2 in network_ids[2:end]
+        for i in ids(pm, :branch, nw=n_2)
+            constraint_temperature_state(pm, i, n_1, n_2)
+        end
+        n_1 = n_2
+    end
 
     # this has multinetwork built-in
     #PG.objective_gmd_min_ls_on_off(pm) # variation of equation 3a
@@ -145,7 +146,7 @@ base_mva = raw_net["baseMVA"]
 println("")
 
 
-n = 1
+n = 2
 delta_t = raw_net["time_elapsed"]
 T = n*delta_t
 
@@ -165,8 +166,8 @@ mod_net["time_elapsed"] = 60
 
 # let's reduce the dc voltages
 for (k,gbr) in mod_net["gmd_branch"]
-    gbr["br_v"] /= 100
-    gbr["br_v"] = 0
+    gbr["br_v"] /= 1
+    #gbr["br_v"] = 0
 end
 
 for (k,br) in mod_net["branch"]

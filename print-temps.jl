@@ -1,6 +1,6 @@
 using Printf
-#network_ids = sort(collect(keys(net["nw"])))
-network_ids = ["1","2","3","4"]
+network_ids = sort(collect(keys(net["nw"])))
+#network_ids = ["1","2","3","4"]
 
 vname = "topoil_rise_ss"
 vname = "topoil_rise"
@@ -9,13 +9,13 @@ vname = "topoil_rise"
 #vname = "hotspot"
 
 function print_temps(vname)
-println("variable: $vname")
-for (k,b) in net["nw"]["1"]["branch"]
-  if b["type"] != "xf"
-    continue
-  end
-  @printf  "%4s " k
-end
+#println("variable: $vname")
+#for (k,b) in net["nw"]["1"]["branch"]
+#  if b["type"] != "xf"
+#    continue
+#  end
+#  @printf  "%4s " k
+#end
 
 println()
 

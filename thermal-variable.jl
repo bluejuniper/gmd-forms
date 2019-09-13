@@ -100,8 +100,8 @@ function variable_hotspot(pm::GenericPowerModel; nw::Int=pm.cnw, cnd::Int=pm.ccn
         PMs.var(pm, nw, cnd)[:hsa] = JuMP.@variable(pm.model, 
             [i in PowerModels.ids(pm, nw, :branch)], base_name="$(nw)_$(cnd)_hotspot",
             lower_bound = 0,
-            #upper_bound = PMs.ref(pm, nw, :branch, i, "hotspot_instant_limit"),
-            upper_bound = tmax,
+            upper_bound = PMs.ref(pm, nw, :branch, i, "hotspot_instant_limit"),
+            #upper_bound = tmax,
             start = PowerModels.comp_start_value(PMs.ref(pm, nw, :branch, i), "hotspot_start", cnd)
         )
     else
