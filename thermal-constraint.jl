@@ -3,7 +3,7 @@ using JuMP, PowerModels
 ### Temperature constraints ###
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal
-function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)
+function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)   where T <: PowerModels.AbstractACPForm
     # return delta_oil_rated*K^2
     println("Branch $i rating: $rate_a, TO rise: $delta_oil_rated")
 
@@ -18,6 +18,20 @@ function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::I
     #JuMP.@constraint(pm.model, delta_oil_ss == 150)
 end
 
+
+function constraint_temperature_steady_state(pm::GenericPowerModel, n::Int, i::Int, fi, c::Int, rate_a, delta_oil_rated)   where T <: PowerModels.AbstractDCPForm
+    # return delta_oil_rated*K^2
+    println("Branch $i rating: $rate_a, TO rise: $delta_oil_rated")
+
+    p_fr = PMs.var(pm, n, c, :p, fi) # real power
+    delta_oil_ss = PMs.var(pm, n, c, :ross, i) # top-oil temperature rise
+    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated >= p_fr^2 + q_fr^2)
+    # ARGHHHH...Why doesn't the objective make the inequality tight???!!!
+    # JuMP.@constraint(pm.model, rate_a^2*delta_oil_ss/delta_oil_rated == p_fr^2 + q_fr^2)
+    JuMP.@constraint(pm.model, sqrt(rate_a)*delta_oil_ss/sqrt(delta_oil_rated) >= p_fr)
+    #println("Branch $i[$n] delta_hotspot_ss = 100")
+    #JuMP.@constraint(pm.model, delta_oil_ss == 150)
+end
 
 # i is index of the (transformer) branch
 # fi is index of the "from" branch terminal

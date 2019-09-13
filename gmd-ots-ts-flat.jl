@@ -74,7 +74,7 @@ function post_gic_ots_ts(pm::GenericPowerModel)
 	    #end
 
         for i in PMs.ids(pm, :branch, nw=n)
-            #PG.constraint_dc_current_mag_on_off(pm, i, nw=n)
+            PG.constraint_dc_current_mag_on_off(pm, i, nw=n)
             # OTS formulation is using constraint_qloss
             PG.constraint_qloss_vnom(pm, i, nw=n)
 
@@ -146,12 +146,13 @@ base_mva = raw_net["baseMVA"]
 println("")
 
 
-n = 2
+n = 4
 delta_t = raw_net["time_elapsed"]
 T = n*delta_t
 
+
 # Running model
-ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-3, print_level=0)
+ipopt_solver = JuMP.with_optimizer(Ipopt.Optimizer, tol=1e-4, print_level=0)
 #gurobi_solver = JuMP.with_optimizer(Gurobi.Optimizer, tol=1e-6, print_level=0)
 cbc_solver = JuMP.with_optimizer(Cbc.Optimizer, logLevel=0)
 #juniper_solver = JuMP.with_optimizer(Juniper.Optimizer, nl_solver=ipopt_solver, mip_solver=cbc_solver, log_levels=[])
@@ -165,24 +166,41 @@ mod_net = deepcopy(raw_net)
 mod_net["time_elapsed"] = 60
 
 # let's reduce the dc voltages
-for (k,gbr) in mod_net["gmd_branch"]
-    gbr["br_v"] /= 100
-    #gbr["br_v"] = 0
-end
+# for (k,gbr) in mod_net["gmd_branch"]
+#     gbr["br_v"] /= 1
+#     #gbr["br_v"] = 0
+# end
 
-for (k,br) in mod_net["branch"]
-  br["dispatchable"] = 0
-end
+# for (k,br) in mod_net["branch"]
+#   br["dispatchable"] = 0
+# end
 
 # mod_net["gmd_branch"]["2"]["br_v"] = 100
 
 # Create replicates (multiples) of the network
 net = PMs.replicate(mod_net, n)
 
+scaling = collect(range(1/n,stop=1,step=1/n))
+
+for n in sort([parse(Int,k) for k in keys(net["nw"])])
+    for gb in values(net["nw"]["$n"]["gmd_branch"])
+        gb["br_v"] *= scaling[n]
+    end
+end
+
+
+
+# for (k,gbr) in mod_net["gmd_branch"]
+#     gbr["br_v"] /= 1
+#     #gbr["br_v"] = 0
+# end
+
+
 println("Running model: $(raw_net["name"]) \n")
 # results = run_gic_opf_ts(net, PG.QCWRPowerModel, juniper_solver; setting=setting)
 #results = run_gic_opf_ts(net, PG.ACPPowerModel, juniper_solver; setting=setting)
-results = run_gic_ots_ts(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
+# results = run_gic_ots_ts(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
+results = run_gic_ots_ts(net, PG.DCPPowerModel, juniper_solver; setting=setting)
 #results = run_ots(net, PG.SOCWRPowerModel, juniper_solver; setting=setting)
 println("Done running model")
 

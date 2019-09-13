@@ -11,7 +11,7 @@ function objective_gmd_min_transformer_heating(pm::PMs.GenericPowerModel)
     return JuMP.@objective(pm.model, Min,
     sum(
         sum(
-            sum( PMs.var(pm, n, c, :ross, i) for c in PMs.conductor_ids(pm, n) )
+            sum( PMs.var(pm, n, c, :hsa, i) for c in PMs.conductor_ids(pm, n) )
         # for (i,branch) in PMs.nw_ref[:branch])
         for (i,branch) in nw_ref[:branch])
     for (n, nw_ref) in PMs.nws(pm))
