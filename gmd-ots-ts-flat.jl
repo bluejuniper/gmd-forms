@@ -91,13 +91,13 @@ function post_gic_ots_ts(pm::GenericPowerModel)
         end
 
         ### DC network constraints ###
-        #for i in PMs.ids(pm, :gmd_bus)
-            #PG.constraint_dc_kcl_shunt(pm, i, nw=n)
-        #end
+        for i in PMs.ids(pm, :gmd_bus)
+            PG.constraint_dc_kcl_shunt(pm, i, nw=n)
+        end
 
-        #for i in PMs.ids(pm, :gmd_branch)
-            #PG.constraint_dc_ohms_on_off(pm, i, nw=n)
-        #end
+        for i in PMs.ids(pm, :gmd_branch)
+            PG.constraint_dc_ohms_on_off(pm, i, nw=n)
+        end
 
         for i in PMs.ids(pm, :dcline, nw=n)
             PMs.constraint_dcline(pm, i, nw=n)
