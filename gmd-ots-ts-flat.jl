@@ -29,17 +29,16 @@ function post_gic_ots_ts(pm::GenericPowerModel)
         PMs.variable_generation(pm, nw=n) 
         PMs.variable_branch_flow(pm, nw=n) 
         PMs.variable_dcline_flow(pm, nw=n) 
-        # PMs.variable_current_magnitude_sqr(pm, nw=n)
 
         # ac switching variables
         PMs.variable_branch_indicator(pm, nw=n) # z_e variable
 
         PG.variable_dc_current_mag(pm, nw=n)
-        #PG.variable_dc_current(pm, nw=n)
-        #PG.variable_dc_line_flow(pm; bounded=false, nw=n)
-        #PG.variable_dc_voltage_on_off(pm, nw=n)
+        PG.variable_dc_current(pm, nw=n)
+        PG.variable_dc_line_flow(pm; bounded=false, nw=n)
+        PG.variable_dc_voltage_on_off(pm, nw=n)
         # What is this???
-        #PG.variable_reactive_loss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
+        PG.variable_reactive_loss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)
         #PG.variable_qloss(pm, nw=n) # Q_e^loss for each edge (used to compute  Q_i^loss for each node)        
         
 
