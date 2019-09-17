@@ -1,4 +1,4 @@
-using DataFrames, DelimitedFiles
+using DataFrames, DelimitedFiles, Printf
 
 function update_gmd_status!(net)
     for gb in values(net["gmd_bus"])
@@ -128,7 +128,7 @@ function ts_output_to_df(file::String, output, table_name; n=1)
     close(io)
 end
 
-function ts_output_to_aux(io::IOStream, output::Dict{Any,Any}; n=1)
+function ts_output_to_aux(io::IOStream, output::Dict{Any,Any}, n)
     df = DataFrame()
     branches = output["case"]["nw"]["$n"]["branch"]
     soln_branches = output["result"]["solution"]["nw"]["$n"]["branch"]
@@ -139,16 +139,30 @@ function ts_output_to_aux(io::IOStream, output::Dict{Any,Any}; n=1)
         bf = br["f_bus"]
         bt = br["t_bus"]
         ckt = br["ckt"]
-        println(io, "$bf\t$bt\t\"$ckt\"")
+        brs = soln_branches[k]
+
+        status = "Closed"
+
+        if br["br_status"] == 0 || max(abs(brs["pf"]), abs(brs["pt"])) < 1e-3
+            status = "Open"
+        end
+
+        println(io, "\t$bf\t$bt\t\"$ckt\"\t\"$status\"")
     end
 
     println(io, "}")
 end
 
-function ts_output_to_aux(file::String, output; n=1)
+function ts_output_to_aux(file::String, output::Dict{Any,Any}, n=nothing)
     io = open(file, "w")
-    df = ts_output_to_aux(output; n=n)
-    println(io, join(names(df), ","))
-    writedlm(io, eachrow(df), ",")
+    ts_output_to_aux(io, output, n)
     close(io)
+end
+
+function ts_output_to_aux(prefix::String, output::Dict{Any,Any})
+    for ns in keys(output["case"]["nw"])
+        n = parse(Int, ns)
+        file = @sprintf "%s%2d.aux" prefix n
+        ts_output_to_aux(file, output, n)
+    end
 end
