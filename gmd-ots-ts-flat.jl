@@ -44,7 +44,7 @@ function post_gic_ots_ts(pm::GenericPowerModel)
 
     	  # GMD switching-related variables
 		    #PG.variable_active_generation_sqr_cost(pm, nw=n)
-        #PG.variable_load(pm, nw=n) # l_i^p, l_i^q
+        #PG.variable_load(pm, nw=n) # l_i^p, l_i^qPG.
         #PG.variable_gen_indicator(pm, nw=n)  # z variables for the generators
 
         # thermal variables
