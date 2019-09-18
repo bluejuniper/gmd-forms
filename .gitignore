@@ -12,3 +12,5 @@
 export-results/
 
 *.html
+*.aux
+*.zip
